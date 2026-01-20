@@ -38,219 +38,119 @@
                 <span>Матчи</span>
             </a>
             <div class="user-info">
-                <i class="fas fa-trophy"></i>
+                <i class="fas fa-users"></i>
                 <span id="teamsCount">Загрузка...</span>
             </div>
         </nav>
 
         <main class="main-content">
-            <!-- Фильтры и поиск -->
+            <!-- Поиск -->
             <div class="table-controls glass-effect">
                 <div class="search-container">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="searchTeam" placeholder="Поиск команды или игрока..." class="modern-input">
+                        <input type="text" id="searchTeam" placeholder="Поиск команды..." class="modern-input">
                     </div>
                     <button onclick="clearSearch()" class="btn btn-sm" title="Очистить поиск">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                
-                <div class="sort-controls">
-                    <div class="sort-buttons">
-                        <button class="sort-btn active" data-sort="points" onclick="sortTable('points')">
-                            <i class="fas fa-sort-amount-down"></i>
-                            По очкам
-                        </button>
-                        <button class="sort-btn" data-sort="wins" onclick="sortTable('wins')">
-                            <i class="fas fa-trophy"></i>
-                            По победам
-                        </button>
-                        <button class="sort-btn" data-sort="goals" onclick="sortTable('goals')">
-                            <i class="fas fa-futbol"></i>
-                            По голам
-                        </button>
-                    </div>
-                    
-                    <div class="view-controls">
-                        <button class="view-btn active" onclick="setTableView('compact')" title="Компактный вид">
-                            <i class="fas fa-compress-alt"></i>
-                        </button>
-                        <button class="view-btn" onclick="setTableView('full')" title="Полный вид">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Легенда турнира -->
-            <div class="legend glass-effect">
-                <h3><i class="fas fa-info-circle"></i> Обозначения в таблице:</h3>
-                <div class="legend-items">
-                    <div class="legend-item">
-                        <div class="legend-badge cl">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="legend-text">
-                            <strong>Лига Чемпионов</strong>
-                            <small>Топ-4 команды</small>
-                        </div>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-badge el">
-                            <i class="fas fa-globe-europe"></i>
-                        </div>
-                        <div class="legend-text">
-                            <strong>Лига Европы</strong>
-                            <small>5-8 места</small>
-                        </div>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-badge rel">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                        <div class="legend-text">
-                            <strong>Зона вылета</strong>
-                            <small>Последние 2 места</small>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Турнирная таблица -->
-            <div class="table-container glass-effect">
-                <div class="table-header">
-                    <h3><i class="fas fa-list-ol"></i> Положение команд</h3>
-                    <div class="table-stats">
-                        <span><i class="fas fa-users"></i> Команд: <strong id="totalTeams">0</strong></span>
-                        <span><i class="fas fa-futbol"></i> Матчей сыграно: <strong id="totalMatches">0</strong></span>
+            <div class="table-container">
+                <div class="glass-effect mb-0">
+                    <div class="table-header">
+                        <div class="card-header mb-0">
+                            <i class="fas fa-list-ol"></i>
+                            <h2>Положение команд</h2>
+                        </div>
+                        <div class="table-stats">
+                            <span><i class="fas fa-users"></i> Команд: <strong id="totalTeams">0</strong></span>
+                            <span><i class="fas fa-futbol"></i> Матчей: <strong id="totalMatches">0</strong></span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="table-scroll">
-                    <table class="league-table" id="leagueTable">
-                        <thead>
-                            <tr>
-                                <th class="position-col">#</th>
-                                <th class="team-col">Команда</th>
-                                <th class="compact-hidden">Игрок</th>
-                                <th title="Сыграно матчей">И</th>
-                                <th title="Победы">В</th>
-                                <th title="Ничьи">Н</th>
-                                <th title="Поражения">П</th>
-                                <th title="Забито мячей">ЗМ</th>
-                                <th title="Пропущено мячей">ПМ</th>
-                                <th title="Разница мячей">±</th>
-                                <th class="points-col">О</th>
-                                <th class="compact-hidden" title="Форма">Форма</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Данные будут загружены через JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="table-footer">
-                    <div class="last-update">
-                        <i class="fas fa-sync-alt"></i>
-                        Обновлено: <span id="lastUpdate">только что</span>
+                    
+                    <div class="table-scroll">
+                        <table class="league-table" id="leagueTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Команда</th>
+                                    <th>И</th>
+                                    <th>В</th>
+                                    <th>Н</th>
+                                    <th>П</th>
+                                    <th>ЗМ</th>
+                                    <th>ПМ</th>
+                                    <th>±</th>
+                                    <th>О</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Данные загрузятся через JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
-                    <button onclick="refreshTable()" class="btn btn-sm">
-                        <i class="fas fa-redo"></i>
-                        Обновить
-                    </button>
-                </div>
-            </div>
-
-            <!-- Статистика турнира -->
-            <div class="stats-grid glass-effect">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(46, 213, 115, 0.2);">
-                        <i class="fas fa-crown" style="color: #2ed573;"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Лидер</h4>
-                        <p id="leaderTeam">-</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(79, 195, 247, 0.2);">
-                        <i class="fas fa-bomb" style="color: var(--accent);"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Атака</h4>
-                        <p id="bestAttack">-</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(255, 215, 0, 0.2);">
-                        <i class="fas fa-shield-alt" style="color: var(--secondary);"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Оборона</h4>
-                        <p id="bestDefense">-</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(155, 89, 182, 0.2);">
-                        <i class="fas fa-fire" style="color: #9b59b6;"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Форма</h4>
-                        <p id="bestForm">-</p>
+                    
+                    <div class="table-footer mt-2">
+                        <div class="last-update">
+                            <i class="fas fa-sync-alt"></i>
+                            Обновлено: <span id="lastUpdate">только что</span>
+                        </div>
+                        <button onclick="refreshTable()" class="btn btn-sm">
+                            <i class="fas fa-redo"></i>
+                            Обновить
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Информация о начислениях очков -->
-            <div class="points-info glass-effect">
-                <div class="section-title">
+            <!-- Лидер турнира -->
+            <div class="leader-card glass-effect">
+                <div class="card-header">
+                    <i class="fas fa-crown"></i>
+                    <h2>Лидер турнира</h2>
+                </div>
+                <div class="leader-info" id="leaderInfo">
+                    <div class="loading">Загрузка...</div>
+                </div>
+            </div>
+
+            <!-- Система очков -->
+            <div class="points-system glass-effect">
+                <div class="card-header">
                     <i class="fas fa-calculator"></i>
-                    <h3>Система начисления очков</h3>
+                    <h2>Система начисления очков</h2>
                 </div>
-                <div class="points-grid">
-                    <div class="point-item win">
-                        <div class="point-badge">
+                <div class="points-list">
+                    <div class="point-item">
+                        <div class="point-icon win">
                             <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="point-details">
-                            <h4>Победа</h4>
-                            <p><strong>+3 очка</strong> в таблицу</p>
+                            <h3>Победа</h3>
+                            <p>+3 очка в таблицу</p>
                         </div>
                     </div>
-                    
-                    <div class="point-item draw">
-                        <div class="point-badge">
+                    <div class="point-item">
+                        <div class="point-icon draw">
                             <i class="fas fa-minus-circle"></i>
                         </div>
                         <div class="point-details">
-                            <h4>Ничья</h4>
-                            <p><strong>+1 очко</strong> каждой команде</p>
+                            <h3>Ничья</h3>
+                            <p>+1 очко каждой команде</p>
                         </div>
                     </div>
-                    
-                    <div class="point-item loss">
-                        <div class="point-badge">
+                    <div class="point-item">
+                        <div class="point-icon loss">
                             <i class="fas fa-times-circle"></i>
                         </div>
                         <div class="point-details">
-                            <h4>Поражение</h4>
-                            <p><strong>0 очков</strong></p>
+                            <h3>Поражение</h3>
+                            <p>0 очков</p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="note">
-                    <p><i class="fas fa-info-circle"></i> <strong>Примечание:</strong> При равенстве очков учитываются:</p>
-                    <ol>
-                        <li>Разница забитых и пропущенных мячей</li>
-                        <li>Количество забитых мячей</li>
-                        <li>Результаты личных встреч</li>
-                    </ol>
                 </div>
             </div>
         </main>
@@ -259,7 +159,7 @@
             <p class="copyright">
                 © 2026 ЛЪибилская Лига • Турнирная таблица обновляется автоматически
             </p>
-            <div class="auto-refresh">
+            <div class="auto-refresh mt-2">
                 <i class="fas fa-sync-alt"></i>
                 <span>Автообновление каждые 30 сек</span>
             </div>
@@ -268,10 +168,8 @@
 
     <script src="script.js"></script>
     <script>
-        const API_BASE = 'https://fc-mobile-dido-league.onrender.com/api';
+        const API_BASE = 'https://ваше-приложение.onrender.com/api';
         let currentTeams = [];
-        let currentSort = 'points';
-        let tableView = 'compact';
         
         // Загрузка таблицы
         async function loadTable() {
@@ -281,9 +179,9 @@
                 
                 updateTableInfo(currentTeams);
                 renderTable(currentTeams);
-                updateStats(currentTeams);
+                updateLeader(currentTeams);
                 
-                // Обновляем время последнего обновления
+                // Обновляем время
                 const now = new Date();
                 document.getElementById('lastUpdate').textContent = 
                     `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -294,7 +192,7 @@
             }
         }
         
-        // Обновление информации о таблице
+        // Обновление информации
         function updateTableInfo(teams) {
             document.getElementById('teamsCount').textContent = `${teams.length} команд`;
             document.getElementById('totalTeams').textContent = teams.length;
@@ -311,15 +209,11 @@
             if (teams.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="12" class="empty-table">
+                        <td colspan="10" class="empty-table">
                             <div class="empty-state">
                                 <i class="fas fa-table"></i>
                                 <h3>Турнирная таблица пуста</h3>
                                 <p>Команды ещё не зарегистрировались или не сыграли матчи</p>
-                                <a href="index.html" class="btn btn-primary">
-                                    <i class="fas fa-user-plus"></i>
-                                    Стать первым участником
-                                </a>
                             </div>
                         </td>
                     </tr>
@@ -327,49 +221,25 @@
                 return;
             }
             
-            // Сортируем команды
-            const sortedTeams = sortTeams([...teams], currentSort);
+            // Сортируем по очкам
+            const sortedTeams = [...teams].sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+                return b.goalsFor - a.goalsFor;
+            });
             
             tbody.innerHTML = sortedTeams.map((team, index) => {
                 const position = index + 1;
                 const goalDifference = team.goalsFor - team.goalsAgainst;
                 
-                // Определяем категорию команды
-                let category = '';
-                let positionClass = '';
-                
-                if (teams.length >= 8) {
-                    if (position <= 4) {
-                        category = 'cl';
-                        positionClass = 'position-cl';
-                    } else if (position <= 8) {
-                        category = 'el';
-                        positionClass = 'position-el';
-                    } else if (position > teams.length - 2) {
-                        category = 'rel';
-                        positionClass = 'position-rel';
-                    }
-                }
-                
-                // Генерируем форму (последние 5 матчей)
-                const form = generateForm(team);
-                
                 return `
-                    <tr class="${category}-row" data-team-id="${team.id}">
-                        <td class="position-cell ${positionClass}">
-                            <span class="position-number">${position}</span>
-                            ${category === 'cl' ? '<i class="fas fa-star"></i>' : 
-                              category === 'el' ? '<i class="fas fa-globe-europe"></i>' : 
-                              category === 'rel' ? '<i class="fas fa-arrow-down"></i>' : ''}
+                    <tr>
+                        <td class="position-cell">
+                            <strong>${position}</strong>
                         </td>
                         <td class="team-cell">
-                            <div class="team-info">
-                                <div class="team-name">${team.teamName}</div>
-                                <div class="team-owner">${team.ownerName}</div>
-                            </div>
-                        </td>
-                        <td class="compact-hidden">
-                            <div class="player-name">${team.ownerName}</div>
+                            <div class="team-name">${team.teamName}</div>
+                            <div class="team-owner">${team.ownerName}</div>
                         </td>
                         <td>${team.played}</td>
                         <td class="win-cell">${team.wins}</td>
@@ -383,137 +253,57 @@
                         <td class="points-cell">
                             <span class="points-badge">${team.points}</span>
                         </td>
-                        <td class="compact-hidden form-cell">
-                            <div class="form-icons">${form}</div>
-                        </td>
                     </tr>
                 `;
             }).join('');
-            
-            // Применяем текущий вид таблицы
-            applyTableView();
         }
         
-        // Сортировка команд
-        function sortTeams(teams, sortBy) {
-            return teams.sort((a, b) => {
-                switch(sortBy) {
-                    case 'points':
-                        if (b.points !== a.points) return b.points - a.points;
-                        if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-                        return b.goalsFor - a.goalsFor;
-                        
-                    case 'wins':
-                        if (b.wins !== a.wins) return b.wins - a.wins;
-                        return b.points - a.points;
-                        
-                    case 'goals':
-                        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-                        return b.goalDifference - a.goalDifference;
-                        
-                    default:
-                        return b.points - a.points;
-                }
-            });
-        }
-        
-        // Генерация формы (упрощенная версия)
-        function generateForm(team) {
-            // В реальном приложении здесь была бы логика с последними матчами
-            // Для демо генерируем случайную форму
-            const forms = ['W', 'D', 'L'];
-            let formHTML = '';
+        // Обновление лидера
+        function updateLeader(teams) {
+            const leaderInfo = document.getElementById('leaderInfo');
+            if (!leaderInfo) return;
             
-            for (let i = 0; i < 5; i++) {
-                const randomForm = forms[Math.floor(Math.random() * forms.length)];
-                formHTML += `<span class="form-${randomForm.toLowerCase()}">${randomForm}</span>`;
-            }
-            
-            return formHTML;
-        }
-        
-        // Обновление статистики
-        function updateStats(teams) {
             if (teams.length === 0) {
-                document.getElementById('leaderTeam').textContent = '-';
-                document.getElementById('bestAttack').textContent = '-';
-                document.getElementById('bestDefense').textContent = '-';
-                document.getElementById('bestForm').textContent = '-';
+                leaderInfo.innerHTML = `
+                    <div class="no-leader">
+                        <p>Пока нет лидера</p>
+                    </div>
+                `;
                 return;
             }
             
-            // Лидер
             const leader = teams.reduce((prev, current) => 
                 (prev.points > current.points) ? prev : current
             );
-            document.getElementById('leaderTeam').textContent = `${leader.teamName} (${leader.points} очков)`;
             
-            // Лучшая атака
-            const bestAttack = teams.reduce((prev, current) => 
-                (prev.goalsFor > current.goalsFor) ? prev : current
-            );
-            document.getElementById('bestAttack').textContent = `${bestAttack.teamName} (${bestAttack.goalsFor} голов)`;
-            
-            // Лучшая оборона
-            const bestDefense = teams.reduce((prev, current) => 
-                (prev.goalsAgainst < current.goalsAgainst) ? prev : current
-            );
-            document.getElementById('bestDefense').textContent = `${bestDefense.teamName} (${bestDefense.goalsAgainst} пропущено)`;
-            
-            // Лучшая форма (по проценту побед)
-            const bestForm = teams.reduce((prev, current) => {
-                const prevRate = prev.played > 0 ? (prev.wins / prev.played) * 100 : 0;
-                const currentRate = current.played > 0 ? (current.wins / current.played) * 100 : 0;
-                return prevRate > currentRate ? prev : current;
-            });
-            const winRate = bestForm.played > 0 ? Math.round((bestForm.wins / bestForm.played) * 100) : 0;
-            document.getElementById('bestForm').textContent = `${bestForm.teamName} (${winRate}% побед)`;
+            leaderInfo.innerHTML = `
+                <div class="leader-details">
+                    <div class="leader-team">
+                        <i class="fas fa-trophy"></i>
+                        <div>
+                            <h3>${leader.teamName}</h3>
+                            <p>${leader.ownerName}</p>
+                        </div>
+                    </div>
+                    <div class="leader-stats">
+                        <div class="stat">
+                            <span class="stat-label">Очки</span>
+                            <span class="stat-value">${leader.points}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Победы</span>
+                            <span class="stat-value">${leader.wins}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Голы</span>
+                            <span class="stat-value">${leader.goalsFor}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
         
-        // Сортировка таблицы
-        function sortTable(sortBy) {
-            currentSort = sortBy;
-            
-            // Обновляем активную кнопку
-            document.querySelectorAll('.sort-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.sort === sortBy) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            // Перерисовываем таблицу
-            renderTable(currentTeams);
-        }
-        
-        // Установка вида таблицы
-        function setTableView(view) {
-            tableView = view;
-            
-            // Обновляем активную кнопку
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Применяем вид
-            applyTableView();
-        }
-        
-        function applyTableView() {
-            const table = document.getElementById('leagueTable');
-            if (!table) return;
-            
-            if (tableView === 'compact') {
-                table.classList.add('compact-view');
-                table.classList.remove('full-view');
-            } else {
-                table.classList.add('full-view');
-                table.classList.remove('compact-view');
-            }
-        }
-        
-        // Поиск команд
+        // Поиск
         function setupSearch() {
             const searchInput = document.getElementById('searchTeam');
             if (!searchInput) return;
@@ -529,8 +319,7 @@
                 
                 rows.forEach(row => {
                     const teamName = row.querySelector('.team-name')?.textContent.toLowerCase() || '';
-                    const playerName = row.querySelector('.player-name')?.textContent.toLowerCase() || 
-                                      row.querySelector('.team-owner')?.textContent.toLowerCase() || '';
+                    const playerName = row.querySelector('.team-owner')?.textContent.toLowerCase() || '';
                     
                     if (teamName.includes(searchTerm) || playerName.includes(searchTerm)) {
                         row.style.display = '';
@@ -573,12 +362,11 @@
             if (tbody) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="12" class="error-state">
+                        <td colspan="10" class="error-state">
                             <div class="error-message">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                <h3>Ошибка загрузки</h3>
                                 <p>${message}</p>
-                                <button onclick="loadTable()" class="btn btn-primary">
+                                <button onclick="loadTable()" class="btn btn-sm mt-2">
                                     <i class="fas fa-redo"></i>
                                     Попробовать снова
                                 </button>
@@ -609,7 +397,7 @@
                 }
             }, 30000);
             
-            // Запускаем автообновление при возвращении на вкладку
+            // Обновление при возвращении на вкладку
             document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') {
                     loadTable();
@@ -620,186 +408,22 @@
     
     <style>
         /* Стили для таблицы */
-        .table-controls {
-            margin-bottom: 24px;
-        }
-        
-        .search-container {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        
-        .search-box {
-            flex: 1;
-            position: relative;
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--accent);
-        }
-        
-        .search-box input {
-            padding-left: 45px;
-        }
-        
-        .sort-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .sort-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .sort-btn {
-            padding: 10px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: var(--light);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-        
-        .sort-btn.active {
-            background: var(--secondary);
-            color: var(--dark);
-            font-weight: 700;
-        }
-        
-        .sort-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.12);
-        }
-        
-        .view-controls {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .view-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: var(--light);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .view-btn.active {
-            background: var(--accent);
-            color: white;
-        }
-        
-        .view-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.12);
-        }
-        
-        /* Легенда */
-        .legend {
-            margin-bottom: 24px;
-        }
-        
-        .legend-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-top: 16px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .legend-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        .legend-badge.cl {
-            background: rgba(46, 213, 115, 0.2);
-            color: #2ed573;
-        }
-        
-        .legend-badge.el {
-            background: rgba(52, 152, 219, 0.2);
-            color: #3498db;
-        }
-        
-        .legend-badge.rel {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-        }
-        
-        .legend-text {
-            flex: 1;
-        }
-        
-        .legend-text strong {
-            display: block;
-            font-size: 0.95rem;
-            margin-bottom: 2px;
-        }
-        
-        .legend-text small {
-            font-size: 0.85rem;
-            opacity: 0.8;
-        }
-        
-        /* Таблица */
-        .table-container {
-            margin-bottom: 30px;
-        }
-        
         .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .table-header h3 {
-            color: var(--secondary);
-            font-size: 1.2rem;
+            margin-bottom: 24px;
         }
         
         .table-stats {
             display: flex;
-            gap: 20px;
-            font-size: 0.9rem;
+            gap: 24px;
+            margin-top: 16px;
+            flex-wrap: wrap;
         }
         
         .table-stats span {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            font-size: 0.95rem;
         }
         
         .table-stats i {
@@ -809,111 +433,78 @@
         .table-scroll {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            margin: 0 -20px;
-            padding: 0 20px;
+            border-radius: 12px;
         }
         
         .league-table {
             width: 100%;
-            min-width: 800px;
-            border-collapse: collapse;
-        }
-        
-        .league-table.compact-view .compact-hidden {
-            display: none;
-        }
-        
-        .league-table.full-view .compact-hidden {
-            display: table-cell;
+            min-width: 700px;
         }
         
         .league-table th {
-            padding: 16px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+            font-weight: 700;
+            font-size: 0.95rem;
         }
-        
-        .position-col, .points-col {
-            width: 60px;
-        }
-        
-        .team-col {
-            min-width: 180px;
-            text-align: left;
-        }
-        
-        .league-table td {
-            padding: 14px 12px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: background 0.2s ease;
-        }
-        
-        .league-table tr:hover td {
-            background: rgba(255, 255, 255, 0.03);
-        }
-        
-        .cl-row { background: rgba(46, 213, 115, 0.03); }
-        .el-row { background: rgba(52, 152, 219, 0.03); }
-        .rel-row { background: rgba(231, 76, 60, 0.03); }
         
         .position-cell {
             font-weight: 800;
             font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        
-        .position-cl { color: #27ae60; }
-        .position-el { color: #3498db; }
-        .position-rel { color: #e74c3c; }
-        
-        .position-number {
-            min-width: 24px;
-            text-align: center;
+            color: var(--secondary);
         }
         
         .team-cell {
             text-align: left;
-            padding-left: 20px;
-        }
-        
-        .team-info {
-            display: flex;
-            flex-direction: column;
+            min-width: 200px;
         }
         
         .team-name {
             font-weight: 700;
             font-size: 1rem;
+            margin-bottom: 4px;
         }
         
-        .team-owner, .player-name {
-            font-size: 0.85rem;
+        .team-owner {
+            font-size: 0.9rem;
             opacity: 0.8;
-            margin-top: 2px;
         }
         
-        .win-cell { color: #27ae60; font-weight: 700; }
-        .draw-cell { color: #f39c12; font-weight: 700; }
-        .loss-cell { color: #e74c3c; font-weight: 700; }
+        .win-cell {
+            color: #27ae60;
+            font-weight: 700;
+        }
         
-        .goals-for { color: var(--accent); font-weight: 600; }
-        .goals-against { color: #ff6b6b; font-weight: 600; }
+        .draw-cell {
+            color: #f39c12;
+            font-weight: 700;
+        }
+        
+        .loss-cell {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+        
+        .goals-for {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .goals-against {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
         
         .goal-difference {
             font-weight: 800;
             font-size: 1.1rem;
         }
         
-        .goal-difference.positive { color: #27ae60; }
-        .goal-difference.negative { color: #e74c3c; }
+        .goal-difference.positive {
+            color: #27ae60;
+        }
+        
+        .goal-difference.negative {
+            color: #e74c3c;
+        }
         
         .points-cell {
             font-weight: 800;
@@ -923,42 +514,17 @@
             display: inline-block;
             background: rgba(255, 215, 0, 0.2);
             color: var(--secondary);
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 1.1rem;
-            min-width: 50px;
+            min-width: 60px;
         }
-        
-        .form-cell {
-            font-size: 0.9rem;
-        }
-        
-        .form-icons {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-        }
-        
-        .form-w, .form-d, .form-l {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.8rem;
-        }
-        
-        .form-w { background: rgba(46, 213, 115, 0.2); color: #2ed573; }
-        .form-d { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
-        .form-l { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
         
         .table-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            margin-top: 24px;
             padding-top: 20px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -975,29 +541,98 @@
             color: var(--accent);
         }
         
-        /* Статистика */
-        .stats-grid {
+        /* Карточка лидера */
+        .leader-info {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+        
+        .leader-details {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .leader-team {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .leader-team i {
+            font-size: 48px;
+            color: var(--secondary);
+        }
+        
+        .leader-team h3 {
+            font-size: 1.4rem;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+        
+        .leader-team p {
+            opacity: 0.9;
+        }
+        
+        .leader-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+        
+        /* Система очков */
+        .points-list {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-top: 20px;
         }
         
-        .stat-card {
+        .point-item {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
             padding: 20px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            transition: transform 0.3s ease;
+            border-radius: 16px;
+            border-left: 4px solid;
         }
         
-        .stat-card:hover {
-            transform: translateY(-5px);
+        .point-item:nth-child(1) {
+            border-left-color: #27ae60;
         }
         
-        .stat-icon {
+        .point-item:nth-child(2) {
+            border-left-color: #f39c12;
+        }
+        
+        .point-item:nth-child(3) {
+            border-left-color: #e74c3c;
+        }
+        
+        .point-icon {
             width: 50px;
             height: 50px;
             border-radius: 12px;
@@ -1007,145 +642,65 @@
             font-size: 1.5rem;
         }
         
-        .stat-info h4 {
-            font-size: 0.9rem;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-        
-        .stat-info p {
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
-        
-        /* Информация об очках */
-        .points-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin: 20px 0;
-        }
-        
-        .point-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-        }
-        
-        .point-item.win {
-            border-left: 4px solid #27ae60;
-        }
-        
-        .point-item.draw {
-            border-left: 4px solid #f39c12;
-        }
-        
-        .point-item.loss {
-            border-left: 4px solid #e74c3c;
-        }
-        
-        .point-badge {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        .point-item.win .point-badge {
+        .point-item:nth-child(1) .point-icon {
             background: rgba(46, 213, 115, 0.2);
             color: #2ed573;
         }
         
-        .point-item.draw .point-badge {
+        .point-item:nth-child(2) .point-icon {
             background: rgba(243, 156, 18, 0.2);
             color: #f39c12;
         }
         
-        .point-item.loss .point-badge {
+        .point-item:nth-child(3) .point-icon {
             background: rgba(231, 76, 60, 0.2);
             color: #e74c3c;
         }
         
-        .point-details h4 {
-            font-size: 1rem;
+        .point-details h3 {
+            font-size: 1.1rem;
             margin-bottom: 4px;
         }
         
         .point-details p {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             opacity: 0.9;
         }
         
-        .note {
-            margin-top: 20px;
-            padding: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-        
-        .note p {
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .note i {
-            color: var(--accent);
-        }
-        
-        .note ol {
-            margin-left: 24px;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .note li {
-            margin-bottom: 6px;
-        }
-        
-        /* Состояния таблицы */
+        /* Состояния */
         .empty-table, .error-state {
             padding: 60px 20px !important;
         }
         
-        .empty-state, .error-message {
+        .empty-state, .error-message, .no-leader {
             text-align: center;
-            max-width: 400px;
-            margin: 0 auto;
         }
         
         .empty-state i, .error-message i {
-            font-size: 64px;
+            font-size: 48px;
             color: var(--accent);
             margin-bottom: 20px;
             opacity: 0.5;
         }
         
-        .empty-state h3, .error-message h3 {
+        .empty-state h3 {
             color: var(--secondary);
             margin-bottom: 10px;
         }
         
-        .empty-state p, .error-message p {
-            margin-bottom: 20px;
+        .empty-state p, .error-message p, .no-leader p {
             opacity: 0.8;
+            margin-bottom: 20px;
         }
         
         /* Футер */
         .auto-refresh {
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
             font-size: 0.9rem;
             opacity: 0.8;
-            margin-top: 10px;
         }
         
         .auto-refresh i {
@@ -1160,66 +715,43 @@
         
         /* Адаптивность */
         @media (max-width: 768px) {
-            .sort-controls {
-                flex-direction: column;
-                align-items: stretch;
+            .leader-stats {
+                grid-template-columns: repeat(3, 1fr);
             }
             
-            .view-controls {
-                justify-content: flex-end;
-            }
-            
-            .table-header {
-                flex-direction: column;
-                align-items: stretch;
+            .points-list {
+                grid-template-columns: 1fr;
             }
             
             .table-stats {
                 justify-content: space-between;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+            .table-footer {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
             }
             
-            .points-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .league-table th, 
-            .league-table td {
-                padding: 12px 8px;
-                font-size: 0.85rem;
-            }
-            
-            .team-name {
-                font-size: 0.95rem;
-            }
-            
-            .team-owner, .player-name {
-                font-size: 0.8rem;
+            .table-footer button {
+                width: 100%;
             }
         }
         
         @media (max-width: 480px) {
-            .stats-grid {
+            .leader-stats {
                 grid-template-columns: 1fr;
             }
             
-            .legend-items {
-                grid-template-columns: 1fr;
+            .leader-team {
+                flex-direction: column;
+                text-align: center;
             }
             
-            .sort-buttons {
-                justify-content: center;
-            }
-            
-            .sort-btn {
-                flex: 1;
-                justify-content: center;
+            .stat-value {
+                font-size: 1.5rem;
             }
         }
     </style>
 </body>
 </html>
-
