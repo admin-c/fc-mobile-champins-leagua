@@ -1,5 +1,5 @@
 // ⚠️ ВСТАВЬТЕ ВАШ API СЮДА
-const API_BASE = 'https://ваше-приложение.onrender.com/api';
+const API_BASE = 'https://fc-mobile-dido-league.onrender.com/api';
 
 let deferredPrompt;
 
@@ -536,3 +536,4 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
