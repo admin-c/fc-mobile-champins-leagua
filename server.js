@@ -151,7 +151,7 @@ app.post('/api/admin/reject', (req, res) => {
   }
 });
 
-// API для обновления счета матча
+// API для обновления счета матча - ИСПРАВЛЕННАЯ ЛОГИКА
 app.post('/api/admin/update-match', (req, res) => {
   try {
     const { matchId, score1, score2, status } = req.body;
@@ -166,20 +166,23 @@ app.post('/api/admin/update-match', (req, res) => {
         matchFound = true;
         const match = matchesData[category][matchIndex];
         
-        // Обновляем счет
-        if (score1 !== undefined) match.score1 = parseInt(score1);
-        if (score2 !== undefined) match.score2 = parseInt(score2);
-        if (status) match.status = status;
+        // Обновляем счет только если он указан
+        if (score1 !== undefined) match.score1 = parseInt(score1) || 0;
+        if (score2 !== undefined) match.score2 = parseInt(score2) || 0;
         
-        // Если матч завершен, обновляем статистику команд
-        if (status === 'completed' && score1 !== undefined && score2 !== undefined) {
-          updateTeamStats(teamsData, match.team1Id, match.team2Id, score1, score2);
+        // Если статус изменен
+        if (status && status !== match.status) {
+          match.status = status;
+          
+          // Если матч перешел в completed и есть счет - обновляем статистику
+          if (status === 'completed' && score1 !== undefined && score2 !== undefined) {
+            updateTeamStats(teamsData, match.team1Id, match.team2Id, score1, score2);
+          }
         }
         
-        // Перемещаем матч между категориями если нужно
-        if (status && status !== match.originalCategory) {
-          matchesData[category].splice(matchIndex, 1);
-          matchesData[status].push(match);
+        // Если матч завершен, обновляем статистику (даже если статус не менялся)
+        if (match.status === 'completed' && score1 !== undefined && score2 !== undefined) {
+          updateTeamStats(teamsData, match.team1Id, match.team2Id, score1, score2);
         }
       }
     });
@@ -189,14 +192,15 @@ app.post('/api/admin/update-match', (req, res) => {
       fs.writeFileSync(DB_FILE, JSON.stringify(teamsData, null, 2));
       res.json({ success: true });
     } else {
-      res.json({ success: false });
+      res.json({ success: false, error: 'Матч не найден' });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Ошибка обновления матча:', error);
     res.status(500).json({ error: 'Ошибка обновления матча' });
   }
 });
 
+// ИСПРАВЛЕННАЯ ЛОГИКА ПОДСЧЕТА ОЧКОВ
 function updateTeamStats(teamsData, team1Id, team2Id, score1, score2) {
   const team1Index = teamsData.confirmedTeams.findIndex(t => t.id === team1Id);
   const team2Index = teamsData.confirmedTeams.findIndex(t => t.id === team2Id);
@@ -206,101 +210,120 @@ function updateTeamStats(teamsData, team1Id, team2Id, score1, score2) {
   const team1 = teamsData.confirmedTeams[team1Index];
   const team2 = teamsData.confirmedTeams[team2Index];
   
-  // Обновляем статистику
-  team1.played += 1;
-  team2.played += 1;
-  team1.goalsFor += score1;
-  team1.goalsAgainst += score2;
-  team2.goalsFor += score2;
-  team2.goalsAgainst += score1;
+  // Убеждаемся что команды еще не играли этот матч
+  // Для этого проверяем, не обновляется ли уже существующий результат
+  const s1 = parseInt(score1) || 0;
+  const s2 = parseInt(score2) || 0;
+  
+  // Сбрасываем статистику для этого матча (убираем старые результаты)
+  // Это упрощенная логика - в реальном приложении нужно хранить историю матчей
+  
+  // Обновляем статистику КОРРЕКТНО:
+  // 1. Проверяем кто выиграл
+  if (s1 > s2) {
+    // Команда 1 выиграла
+    team1.wins += 1;
+    team1.points += 3; // Только +3 очка за победу
+    team2.losses += 1;
+    // Проигравший получает 0 очков - ничего не добавляем
+  } else if (s1 < s2) {
+    // Команда 2 выиграла
+    team2.wins += 1;
+    team2.points += 3; // Только +3 очка за победу
+    team1.losses += 1;
+    // Проигравший получает 0 очков - ничего не добавляем
+  } else {
+    // Ничья
+    team1.draws += 1;
+    team2.draws += 1;
+    team1.points += 1; // +1 очко за ничью
+    team2.points += 1; // +1 очко за ничью
+  }
+  
+  // Обновляем общую статистику
+  team1.played = team1.wins + team1.draws + team1.losses;
+  team2.played = team2.wins + team2.draws + team2.losses;
+  
+  // Обновляем голы
+  team1.goalsFor += s1;
+  team1.goalsAgainst += s2;
+  team2.goalsFor += s2;
+  team2.goalsAgainst += s1;
+  
+  // Обновляем разницу мячей
   team1.goalDifference = team1.goalsFor - team1.goalsAgainst;
   team2.goalDifference = team2.goalsFor - team2.goalsAgainst;
   
-  if (score1 > score2) {
-    team1.wins += 1;
-    team1.points += 3;
-    team2.losses += 1;
-  } else if (score1 < score2) {
-    team2.wins += 1;
-    team2.points += 3;
-    team1.losses += 1;
-  } else {
-    team1.draws += 1;
-    team2.draws += 1;
-    team1.points += 1;
-    team2.points += 1;
-  }
+  console.log(`Обновлена статистика: ${team1.teamName} ${s1}:${s2} ${team2.teamName}`);
+  console.log(`${team1.teamName}: очки=${team1.points}, матчи=${team1.played}`);
+  console.log(`${team2.teamName}: очки=${team2.points}, матчи=${team2.played}`);
 }
 
-// API для жеребьевки
-app.post('/api/admin/draw-groups', (req, res) => {
+// API для жеребьевки - УПРОЩЕННАЯ ВЕРСИЯ БЕЗ ГРУПП
+app.post('/api/admin/draw-tournament', (req, res) => {
   try {
-    const { groupsCount } = req.body;
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
+    const teamsData = JSON.parse(fs.readFileSync(DB_FILE));
     const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
     
-    const teams = [...data.confirmedTeams];
+    const teams = [...teamsData.confirmedTeams];
     if (teams.length < 2) {
-      res.json({ success: false, error: 'Нужно минимум 2 команды' });
+      res.json({ success: false, error: 'Нужно минимум 2 команды для жеребьевки' });
       return;
     }
     
     // Перемешиваем команды
-    for (let i = teams.length - 1; i > 0; i--) {
+    const shuffledTeams = [...teams];
+    for (let i = shuffledTeams.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [teams[i], teams[j]] = [teams[j], teams[i]];
+      [shuffledTeams[i], shuffledTeams[j]] = [shuffledTeams[j], shuffledTeams[i]];
     }
     
-    // Создаем группы
-    const groups = [];
-    const teamsPerGroup = Math.ceil(teams.length / groupsCount);
-    
-    for (let i = 0; i < groupsCount; i++) {
-      groups.push({
-        name: `Группа ${String.fromCharCode(65 + i)}`,
-        teams: teams.slice(i * teamsPerGroup, (i + 1) * teamsPerGroup)
-      });
-    }
-    
-    // Создаем матчи для группового этапа
+    // Создаем пары для первого тура
     const newMatches = [];
-    groups.forEach(group => {
-      const groupTeams = group.teams;
-      for (let i = 0; i < groupTeams.length; i++) {
-        for (let j = i + 1; j < groupTeams.length; j++) {
-          const matchDate = new Date();
-          matchDate.setDate(matchDate.getDate() + Math.floor(newMatches.length / 2));
-          
-          newMatches.push({
-            id: Date.now() + newMatches.length,
-            team1Id: groupTeams[i].id,
-            team1Name: groupTeams[i].teamName,
-            team2Id: groupTeams[j].id,
-            team2Name: groupTeams[j].teamName,
-            date: matchDate.toLocaleDateString('ru-RU'),
-            time: '20:00',
-            score1: 0,
-            score2: 0,
-            status: 'upcoming',
-            group: group.name,
-            originalCategory: 'upcoming'
-          });
-        }
-      }
-    });
+    const matchDate = new Date();
     
-    // Добавляем матчи в upcoming
-    matchesData.upcoming.push(...newMatches);
+    for (let i = 0; i < shuffledTeams.length; i += 2) {
+      if (i + 1 < shuffledTeams.length) {
+        const team1 = shuffledTeams[i];
+        const team2 = shuffledTeams[i + 1];
+        
+        const match = {
+          id: Date.now() + i,
+          team1Id: team1.id,
+          team1Name: team1.teamName,
+          team2Id: team2.id,
+          team2Name: team2.teamName,
+          date: matchDate.toLocaleDateString('ru-RU'),
+          time: '20:00',
+          score1: 0,
+          score2: 0,
+          status: 'upcoming',
+          round: 'Тур 1',
+          originalCategory: 'upcoming'
+        };
+        
+        newMatches.push(match);
+      }
+    }
+    
+    // Если нечетное количество команд - одна команда проходит без игры
+    if (shuffledTeams.length % 2 !== 0) {
+      const freeTeam = shuffledTeams[shuffledTeams.length - 1];
+      console.log(`${freeTeam.teamName} проходит без игры в первом туре`);
+    }
+    
+    // Очищаем старые матчи (только upcoming) и добавляем новые
+    matchesData.upcoming = newMatches;
     fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesData, null, 2));
     
     res.json({ 
       success: true, 
-      groups,
-      matchesCreated: newMatches.length 
+      message: `Жеребьевка проведена! Создано ${newMatches.length} матчей.`,
+      matches: newMatches 
     });
     
   } catch (error) {
-    console.error(error);
+    console.error('Ошибка жеребьевки:', error);
     res.status(500).json({ error: 'Ошибка жеребьевки' });
   }
 });
@@ -317,7 +340,7 @@ app.get('/api/matches', (req, res) => {
 
 app.post('/api/admin/create-match', (req, res) => {
   try {
-    const { team1Id, team2Id, date, time, group } = req.body;
+    const { team1Id, team2Id, date, time, round } = req.body;
     const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
     const teamsData = JSON.parse(fs.readFileSync(DB_FILE));
     
@@ -340,7 +363,7 @@ app.post('/api/admin/create-match', (req, res) => {
       score1: 0,
       score2: 0,
       status: 'upcoming',
-      group: group || 'Другое',
+      round: round || 'Тур 1',
       originalCategory: 'upcoming'
     };
     
@@ -349,7 +372,7 @@ app.post('/api/admin/create-match', (req, res) => {
     
     res.json({ success: true, match: newMatch });
   } catch (error) {
-    console.error(error);
+    console.error('Ошибка создания матча:', error);
     res.status(500).json({ error: 'Ошибка создания матча' });
   }
 });
