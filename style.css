@@ -1,0 +1,842 @@
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #1a237e;
+    --secondary: #ffd700;
+    --accent: #4fc3f7;
+    --dark: #0d1b2a;
+    --light: #f8f9fa;
+    --glass: rgba(255, 255, 255, 0.1);
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --radius: 16px;
+    --radius-sm: 12px;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background: linear-gradient(135deg, var(--dark) 0%, var(--primary) 100%);
+    color: var(--light);
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-size: 14px;
+}
+
+/* Анимированный фон */
+.animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(79, 195, 247, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(76, 175, 80, 0.08) 0%, transparent 50%);
+    animation: pulse 20s ease-in-out infinite alternate;
+    z-index: -2;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.1) rotate(180deg); }
+}
+
+/* Частицы */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Контейнеры */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.container.slim {
+    max-width: 600px;
+}
+
+/* Glass эффект */
+.glass-effect {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border-radius: var(--radius);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-effect:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Шапка */
+.main-header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeInDown 0.6s ease;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, var(--secondary), #ff9800);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: rotateLogo 30s linear infinite;
+}
+
+.logo::before {
+    content: '';
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    border-radius: 50%;
+    animation: pulseRing 3s infinite;
+}
+
+.trophy-icon {
+    font-size: 32px;
+    color: white;
+    z-index: 2;
+}
+
+.logo-text {
+    position: absolute;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.league-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(45deg, var(--secondary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1.5px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+}
+
+.league-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+/* Формы */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--secondary);
+}
+
+.modern-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--light);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.modern-input:focus {
+    outline: none;
+    border-color: var(--secondary);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+textarea.modern-input {
+    min-height: 100px;
+    resize: vertical;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Кнопки */
+.register-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--secondary), #ff8c00);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--dark);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    margin: 20px 0;
+}
+
+.register-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 0, 0.4);
+}
+
+.already-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(79, 195, 247, 0.15);
+    border-radius: var(--radius-sm);
+    color: var(--light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(79, 195, 247, 0.3);
+}
+
+.already-btn:hover {
+    background: rgba(79, 195, 247, 0.25);
+    transform: translateY(-2px);
+}
+
+/* Быстрые ссылки */
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.quick-link {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.quick-link i {
+    font-size: 24px;
+    color: var(--accent);
+}
+
+.quick-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-3px);
+    border-color: var(--accent);
+}
+
+/* Навигация */
+.main-nav {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(255, 215, 0, 0.15);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+/* Новости */
+.news-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.news-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--secondary);
+}
+
+.news-item h3 {
+    color: var(--secondary);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.news-image {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin: 12px 0;
+}
+
+.news-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin-top: 12px;
+}
+
+/* Турнирная таблица */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 20px 0;
+}
+
+.league-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+    font-size: 0.9rem;
+}
+
+.league-table th {
+    background: rgba(255, 215, 0, 0.15);
+    padding: 14px 10px;
+    text-align: center;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    white-space: nowrap;
+}
+
+.league-table td {
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.league-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Матчи */
+.matches-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.match-tab {
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--light);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.match-tab.active {
+    background: var(--secondary);
+    color: var(--dark);
+    font-weight: 700;
+}
+
+.match-card {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.match-date {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.match-group {
+    background: rgba(79, 195, 247, 0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.match-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.team-name {
+    flex: 1;
+    text-align: center;
+    font-weight: 600;
+}
+
+.vs {
+    font-weight: 700;
+    color: var(--secondary);
+}
+
+.match-score {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin: 12px 0;
+}
+
+.score-input {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: var(--light);
+    font-weight: 700;
+}
+
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #ff4757;
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    animation: pulse 1.5s infinite;
+}
+
+.completed-badge {
+    background: #2ed573;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Админ панель */
+.admin-login {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 32px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.admin-tab {
+    padding: 14px 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    font-size: 0.9rem;
+}
+
+.admin-tab.active {
+    background: var(--secondary);
+    color: var(--dark);
+    font-weight: 700;
+}
+
+.admin-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.admin-content.active {
+    display: block;
+}
+
+.pending-item, .team-item, .match-admin-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+}
+
+.team-stats-compact {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.match-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+}
+
+.btn-success {
+    background: rgba(46, 213, 115, 0.2);
+    color: #2ed573;
+    border: 1px solid rgba(46, 213, 115, 0.4);
+}
+
+.btn-danger {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+    border: 1px solid rgba(255, 71, 87, 0.4);
+}
+
+.btn-primary {
+    background: rgba(79, 195, 247, 0.2);
+    color: var(--accent);
+    border: 1px solid rgba(79, 195, 247, 0.4);
+}
+
+.btn-warning {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--secondary);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* Draw groups */
+.draw-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.groups-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.group-card {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-sm);
+}
+
+.group-card h3 {
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.group-team {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Установка PWA */
+.install-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.install-btn {
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.install-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+}
+
+/* Анимации */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes rotateLogo {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.95); opacity: 0.7; }
+    100% { transform: scale(1.15); opacity: 0; }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
+    }
+    
+    .league-name {
+        font-size: 1.6rem;
+    }
+    
+    .logo {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .trophy-icon {
+        font-size: 28px;
+    }
+    
+    .quick-links {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-btn {
+        min-width: calc(50% - 6px);
+        font-size: 0.85rem;
+        padding: 12px;
+    }
+    
+    .league-table {
+        font-size: 0.85rem;
+    }
+    
+    .league-table th,
+    .league-table td {
+        padding: 10px 6px;
+    }
+    
+    .admin-tabs {
+        gap: 6px;
+    }
+    
+    .admin-tab {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .match-teams {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .team-name {
+        text-align: center;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .league-name {
+        font-size: 1.4rem;
+    }
+    
+    .register-btn, .already-btn {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+    
+    .modern-input {
+        padding: 12px;
+    }
+    
+    .btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+    
+    .install-btn {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        bottom: 16px;
+        right: 16px;
+    }
+}
+
+/* Полезные классы */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.card-header i {
+    color: var(--secondary);
+    font-size: 1.2rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    color: var(--secondary);
+    font-size: 1.2rem;
+}
+
+.already-registered {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.already-registered p {
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+
+/* Скрытый контент */
+.hidden {
+    display: none !important;
+}
+
+/* Плавная прокрутка */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Улучшение для мобильных */
+@media (hover: none) {
+    .glass-effect:hover {
+        transform: none;
+    }
+    
+    .btn:hover, .nav-btn:hover, .quick-link:hover {
+        transform: none;
+    }
+}

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: libil-league
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    healthCheckPath: /
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /*
+        name: Pragma
+        value: no-cache
+      - path: /*
+        name: Expires
+        value: "0"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 18.x

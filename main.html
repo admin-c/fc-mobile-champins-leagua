@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Главное меню - ЛЪибилская Лига</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles-container" id="particles"></div>
+    
+    <div class="container slim">
+        <header class="main-header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-home"></i>
+                    <span class="logo-text">ЛЛ</span>
+                </div>
+                <h1 class="league-name">ГЛАВНОЕ МЕНЮ</h1>
+                <p class="league-subtitle">ЛЪибилская Лига FC Mobile</p>
+            </div>
+        </header>
+
+        <nav class="main-nav">
+            <a href="index.html" class="nav-btn">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </a>
+            <a href="table.html" class="nav-btn">
+                <i class="fas fa-table"></i>
+                <span>Таблица</span>
+            </a>
+            <a href="matches.html" class="nav-btn">
+                <i class="fas fa-futbol"></i>
+                <span>Матчи</span>
+            </a>
+        </nav>
+
+        <main class="main-content">
+            <!-- Приветствие пользователя -->
+            <div class="glass-effect" id="userGreeting">
+                <div class="card-header">
+                    <i class="fas fa-user-circle"></i>
+                    <h2 id="greetingText">Добро пожаловать!</h2>
+                </div>
+                <p id="userInfo">Загрузка информации...</p>
+            </div>
+
+            <!-- Новости -->
+            <div class="glass-effect">
+                <div class="card-header">
+                    <i class="fas fa-newspaper"></i>
+                    <h2>Последние новости</h2>
+                </div>
+                <div class="news-container" id="newsContainer">
+                    <!-- Новости загрузятся через JS -->
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="loadMoreNews()" class="already-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        Обновить новости
+                    </a>
+                </div>
+            </div>
+
+            <!-- Быстрый доступ -->
+            <div class="quick-links">
+                <a href="table.html" class="quick-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Турнирная таблица</span>
+                    <small>Актуальный рейтинг</small>
+                </a>
+                <a href="matches.html" class="quick-link">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Расписание</span>
+                    <small>Ближайшие матчи</small>
+                </a>
+                <a href="#" onclick="showRules()" class="quick-link">
+                    <i class="fas fa-book"></i>
+                    <span>Правила</span>
+                    <small>О турнире</small>
+                </a>
+                <a href="index.html#register" class="quick-link">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Регистрация</span>
+                    <small>Присоединиться</small>
+                </a>
+            </div>
+
+            <!-- Информация о турнире -->
+            <div class="glass-effect">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h2>О турнире</h2>
+                </div>
+                <div class="rules-list">
+                    <div class="rule-item">
+                        <i class="fas fa-calendar-check"></i>
+                        <div>
+                            <h4>Дата начала</h4>
+                            <p>24 января 2026 года</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Время игр</h4>
+                            <p>Суббота и воскресенье</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <i class="fas fa-trophy"></i>
+                        <div>
+                            <h4>Призовой фонд</h4>
+                            <p>Ценные призы для победителей</p>
+                        </div>
+                    </div>
+                    <div class="rule-item">
+                        <i class="fas fa-headset"></i>
+                        <div>
+                            <h4>Поддержка</h4>
+                            <p>Админ: @Ali (Telegram)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="main-footer">
+            <div class="install-container">
+                <button id="installBtn" class="install-btn">
+                    <i class="fas fa-download"></i>
+                    Установить приложение
+                </button>
+            </div>
+            <p class="copyright">© 2026 ЛЪибилская Лига • Все права защищены</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Загрузка информации пользователя
+        document.addEventListener('DOMContentLoaded', () => {
+            const userTeam = localStorage.getItem('userTeam') || 'Не зарегистрирован';
+            const ownerName = localStorage.getItem('ownerName') || '';
+            
+            const greetingText = document.getElementById('greetingText');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (userTeam !== 'Не зарегистрирован') {
+                greetingText.textContent = `Привет, ${ownerName}!`;
+                userInfo.innerHTML = `
+                    <strong>Ваша команда:</strong> ${userTeam}<br>
+                    <small style="opacity: 0.8;">Статус: Ожидание подтверждения</small>
+                `;
+            } else {
+                greetingText.textContent = 'Добро пожаловать!';
+                userInfo.innerHTML = `
+                    Вы ещё не зарегистрированы на турнир<br>
+                    <a href="index.html" style="color: var(--accent); text-decoration: underline;">
+                        Зарегистрируйтесь сейчас!
+                    </a>
+                `;
+            }
+            
+            // Загрузка новостей
+            loadNews();
+            
+            // Частицы
+            if (typeof createParticles === 'function') {
+                createParticles();
+            }
+        });
+        
+        function loadMoreNews() {
+            const newsContainer = document.getElementById('newsContainer');
+            newsContainer.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Загрузка новостей...</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                loadNews();
+                showAlert('Новости обновлены!', 'success');
+            }, 1000);
+        }
+        
+        function showRules() {
+            const rules = `
+                <div style="padding: 20px;">
+                    <h3><i class="fas fa-book"></i> Правила турнира</h3>
+                    <ol style="margin: 15px 0 15px 20px;">
+                        <li>Матчи проводятся по выходным в FC Mobile</li>
+                        <li>За победу - 3 очка, ничья - 1 очко, поражение - 0</li>
+                        <li>Результаты подтверждаются скриншотами</li>
+                        <li>Опоздание более 15 минут - техническое поражение</li>
+                        <li>Неспортивное поведение - дисквалификация</li>
+                        <li>Администратор: @Ali (Telegram)</li>
+                    </ol>
+                    <p><strong>Важно:</strong> Все спорные ситуации решает администратор.</p>
+                </div>
+            `;
+            
+            if (typeof showAlert === 'function') {
+                showAlert(rules, 'info', 10000);
+            } else {
+                alert(rules);
+            }
+        }
+        
+        // PWA установка
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) installBtn.style.display = 'flex';
+        });
+        
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+    </script>
+    
+    <style>
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .rule-item i {
+            font-size: 20px;
+            color: var(--accent);
+            width: 30px;
+        }
+        
+        .rule-item h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+            color: var(--secondary);
+        }
+        
+        .rule-item p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .quick-link small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+        
+        #userGreeting {
+            margin-bottom: 24px;
+        }
+        
+        #greetingText {
+            color: var(--secondary);
+        }
+        
+        #userInfo {
+            line-height: 1.6;
+        }
+    </style>
+</body>
+</html>

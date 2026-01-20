@@ -1,0 +1,45 @@
+{
+  "name": "ЛЪибилская Лига",
+  "short_name": "ЛЪибилская Лига",
+  "description": "Официальное приложение чемпионата по FC Mobile - ЛЪибилская Лига",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#1a237e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/616/616430.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/616/616430.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/892/892492.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "games", "entertainment"],
+  "screenshots": [
+    {
+      "src": "https://via.placeholder.com/540x720/1a237e/ffffff?text=ЛЪибилская+Лига",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "https://via.placeholder.com/720/1a237e/ffffff?text=ЛЪибилская+Лига",
+      "sizes": "720x540",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}

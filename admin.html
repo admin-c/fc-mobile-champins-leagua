@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Админ панель - ЛЪибилская Лига</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="container">
+        <!-- Экран входа -->
+        <div class="admin-login glass-effect" id="loginScreen">
+            <div class="card-header">
+                <i class="fas fa-lock"></i>
+                <h2>Административная панель</h2>
+            </div>
+            <p style="margin-bottom: 24px; opacity: 0.9;">ЛЪибилская Лига - FC Mobile</p>
+            
+            <div class="form-group">
+                <label for="adminPassword">
+                    <i class="fas fa-key"></i>
+                    Пароль администратора
+                </label>
+                <input type="password" id="adminPassword" class="modern-input" placeholder="Введите пароль">
+            </div>
+            
+            <button onclick="login()" class="register-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Войти в админку</span>
+            </button>
+            
+            <div style="margin-top: 20px; text-align: center;">
+                <small style="opacity: 0.7;">Доступ только для администратора турнира</small>
+            </div>
+        </div>
+
+        <!-- Админ панель -->
+        <div class="admin-section hidden" id="adminPanel">
+            <header class="main-header">
+                <div class="logo-container">
+                    <div class="logo" style="width: 60px; height: 60px;">
+                        <i class="fas fa-cogs"></i>
+                        <span class="logo-text">A</span>
+                    </div>
+                    <h1 class="league-name">АДМИН ПАНЕЛЬ</h1>
+                    <p class="league-subtitle">Управление ЛЪибилской Лигой</p>
+                </div>
+            </header>
+
+            <nav class="admin-tabs">
+                <button class="admin-tab active" onclick="showTab('pending')">
+                    <i class="fas fa-user-clock"></i>
+                    <span>Заявки</span>
+                </button>
+                <button class="admin-tab" onclick="showTab('teams')">
+                    <i class="fas fa-users"></i>
+                    <span>Команды</span>
+                </button>
+                <button class="admin-tab" onclick="showTab('draw')">
+                    <i class="fas fa-random"></i>
+                    <span>Жеребьёвка</span>
+                </button>
+                <button class="admin-tab" onclick="showTab('matches')">
+                    <i class="fas fa-futbol"></i>
+                    <span>Матчи</span>
+                </button>
+                <button class="admin-tab" onclick="showTab('news')">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Новости</span>
+                </button>
+            </nav>
+
+            <!-- Заявки -->
+            <div class="admin-content active" id="pendingTab">
+                <div class="section-title">
+                    <i class="fas fa-user-clock"></i>
+                    <h2>Заявки на участие</h2>
+                </div>
+                <div class="pending-list" id="pendingList">
+                    <!-- Заявки загрузятся здесь -->
+                </div>
+            </div>
+
+            <!-- Команды -->
+            <div class="admin-content" id="teamsTab">
+                <div class="section-title">
+                    <i class="fas fa-users"></i>
+                    <h2>Управление командами</h2>
+                </div>
+                <div class="teams-list" id="teamsList">
+                    <!-- Команды загрузятся здесь -->
+                </div>
+            </div>
+
+            <!-- Жеребьёвка -->
+            <div class="admin-content" id="drawTab">
+                <div class="section-title">
+                    <i class="fas fa-random"></i>
+                    <h2>Жеребьёвка групп</h2>
+                </div>
+                
+                <div class="glass-effect" style="margin-bottom: 24px;">
+                    <h3><i class="fas fa-info-circle"></i> Информация</h3>
+                    <p style="margin: 12px 0;">Система автоматически распределит команды по группам и создаст матчи группового этапа.</p>
+                    <div class="draw-controls">
+                        <div class="form-group" style="margin: 0;">
+                            <label>Количество групп:</label>
+                            <select id="groupsCount" class="modern-input" style="width: auto;">
+                                <option value="4">4 группы</option>
+                                <option value="6">6 групп</option>
+                                <option value="8">8 групп</option>
+                            </select>
+                        </div>
+                        <button onclick="drawGroups()" class="btn btn-primary">
+                            <i class="fas fa-random"></i>
+                            Провести жеребьёвку
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="groups-container" id="groupsContainer">
+                    <!-- Группы появятся после жеребьёвки -->
+                </div>
+            </div>
+
+            <!-- Матчи -->
+            <div class="admin-content" id="matchesTab">
+                <div class="section-title">
+                    <i class="fas fa-futbol"></i>
+                    <h2>Управление матчами</h2>
+                </div>
+                
+                <!-- Создание матча -->
+                <div class="glass-effect" style="margin-bottom: 24px;">
+                    <h3><i class="fas fa-plus-circle"></i> Создать новый матч</h3>
+                    <div class="form-group">
+                        <label>Команда 1:</label>
+                        <select id="team1Select" class="modern-input">
+                            <!-- Заполнится командами -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Команда 2:</label>
+                        <select id="team2Select" class="modern-input">
+                            <!-- Заполнится командами -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Дата матча:</label>
+                        <input type="date" id="matchDate" class="modern-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Время:</label>
+                        <input type="time" id="matchTime" class="modern-input" value="20:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Группа:</label>
+                        <input type="text" id="matchGroup" class="modern-input" placeholder="Группа A">
+                    </div>
+                    <button onclick="createMatch()" class="btn btn-success">
+                        <i class="fas fa-plus"></i>
+                        Создать матч
+                    </button>
+                </div>
+                
+                <!-- Управление существующими матчами -->
+                <div class="matches-tabs">
+                    <button class="match-tab active" onclick="showAdminMatchTab('upcoming')">
+                        <i class="fas fa-clock"></i>
+                        <span>Предстоящие</span>
+                    </button>
+                    <button class="match-tab" onclick="showAdminMatchTab('live')">
+                        <i class="fas fa-broadcast-tower"></i>
+                        <span>LIVE</span>
+                    </button>
+                    <button class="match-tab" onclick="showAdminMatchTab('completed')">
+                        <i class="fas fa-flag-checkered"></i>
+                        <span>Завершённые</span>
+                    </button>
+                </div>
+                
+                <div id="adminMatchesContainer">
+                    <!-- Матчи загрузятся здесь -->
+                </div>
+            </div>
+
+            <!-- Новости -->
+            <div class="admin-content" id="newsTab">
+                <div class="section-title">
+                    <i class="fas fa-newspaper"></i>
+                    <h2>Управление новостями</h2>
+                </div>
+                
+                <!-- Добавление новости -->
+                <div class="glass-effect" style="margin-bottom: 24px;">
+                    <h3><i class="fas fa-plus-circle"></i> Добавить новость</h3>
+                    <div class="form-group">
+                        <label>Заголовок:</label>
+                        <input type="text" id="newsTitle" class="modern-input" placeholder="Заголовок новости">
+                    </div>
+                    <div class="form-group">
+                        <label>Текст новости:</label>
+                        <textarea id="newsContent" class="modern-input" rows="4" placeholder="Текст новости..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL изображения (необязательно):</label>
+                        <input type="url" id="newsImageUrl" class="modern-input" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <button onclick="addNews()" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i>
+                        Опубликовать новость
+                    </button>
+                </div>
+                
+                <!-- Редактирование новостей -->
+                <div class="glass-effect">
+                    <h3><i class="fas fa-list"></i> Существующие новости</h3>
+                    <div class="news-list" id="adminNewsList">
+                        <!-- Новости загрузятся здесь -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://ваше-приложение.onrender.com/api';
+        
+        function login() {
+            const password = document.getElementById('adminPassword').value;
+            
+            if (!password) {
+                alert('Введите пароль!');
+                return;
+            }
+            
+            fetch(`${API_BASE}/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    loadPendingTeams();
+                    loadConfirmedTeams();
+                    loadAdminNews();
+                    loadMatchesAdmin();
+                    loadTeamsForSelect();
+                } else {
+                    alert('Неверный пароль!');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка соединения с сервером');
+            });
+        }
+        
+        function showTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.admin-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Убрать активный класс со всех кнопок
+            document.querySelectorAll('.admin-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Показать выбранную вкладку
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Активировать кнопку
+            event.target.classList.add('active');
+            
+            // Загрузить данные если нужно
+            if (tabName === 'draw') {
+                loadGroups();
+            }
+        }
+        
+        // Загрузка заявок
+        function loadPendingTeams() {
+            fetch(`${API_BASE}/admin/pending`)
+            .then(res => res.json())
+            .then(teams => {
+                const container = document.getElementById('pendingList');
+                if (!container) return;
+                
+                if (teams.length === 0) {
+                    container.innerHTML = `
+                        <div class="glass-effect" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-check-circle" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
+                            <h3>Нет новых заявок</h3>
+                            <p>Все заявки обработаны</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = teams.map(team => `
+                    <div class="pending-item glass-effect">
+                        <div class="team-info">
+                            <h4>${team.teamName}</h4>
+                            <p><i class="fas fa-user"></i> ${team.ownerName}</p>
+                            <p><i class="far fa-clock"></i> ${new Date(team.registrationDate).toLocaleDateString('ru-RU')}</p>
+                        </div>
+                        <div class="team-actions">
+                            <button onclick="confirmTeam(${team.id})" class="btn btn-success btn-sm">
+                                <i class="fas fa-check"></i> Принять
+                            </button>
+                            <button onclick="rejectTeam(${team.id})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-times"></i> Отклонить
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки заявок:', error);
+            });
+        }
+        
+        function confirmTeam(teamId) {
+            if (!confirm('Подтвердить заявку команды?')) return;
+            
+            fetch(`${API_BASE}/admin/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Команда подтверждена!');
+                    loadPendingTeams();
+                    loadConfirmedTeams();
+                    loadTeamsForSelect();
+                }
+            });
+        }
+        
+        function rejectTeam(teamId) {
+            if (!confirm('Отклонить заявку команды?')) return;
+            
+            fetch(`${API_BASE}/admin/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Заявка отклонена!');
+                    loadPendingTeams();
+                }
+            });
+        }
+        
+        // Загрузка команд для управления
+        function loadConfirmedTeams() {
+            fetch(`${API_BASE}/teams`)
+            .then(res => res.json())
+            .then(teams => {
+                const container = document.getElementById('teamsList');
+                if (!container) return;
+                
+                if (teams.length === 0) {
+                    container.innerHTML = `
+                        <div class="glass-effect" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-users" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
+                            <h3>Нет подтверждённых команд</h3>
+                            <p>Подтвердите заявки в разделе "Заявки"</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = teams.map(team => `
+                    <div class="team-item glass-effect">
+                        <div class="team-header">
+                            <h4>${team.teamName}</h4>
+                            <span><i class="fas fa-user"></i> ${team.ownerName}</span>
+                        </div>
+                        <div class="team-stats-compact">
+                            <div class="stat">
+                                <span class="stat-label">Очки:</span>
+                                <span class="stat-value">${team.points}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Матчи:</span>
+                                <span class="stat-value">${team.played}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Победы:</span>
+                                <span class="stat-value">${team.wins}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Ничьи:</span>
+                                <span class="stat-value">${team.draws}</span>
+                            </div>
+                        </div>
+                        <div class="match-controls">
+                            <button onclick="resetTeamStats(${team.id})" class="btn btn-warning btn-sm">
+                                <i class="fas fa-redo"></i> Сбросить
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+        
+        function resetTeamStats(teamId) {
+            if (!confirm('Сбросить статистику команды? Все результаты обнулятся.')) return;
+            
+            // Обновляем статистику команды на 0
+            const stats = {
+                teamId,
+                points: 0,
+                wins: 0,
+                draws: 0,
+                losses: 0,
+                goalsFor: 0,
+                goalsAgainst: 0
+            };
+            
+            fetch(`${API_BASE}/admin/update-results`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(stats)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Статистика сброшена!');
+                    loadConfirmedTeams();
+                }
+            });
+        }
+        
+        // Жеребьёвка
+        function drawGroups() {
+            const groupsCount = parseInt(document.getElementById('groupsCount').value);
+            
+            if (!confirm(`Провести жеребьёвку на ${groupsCount} группы? Будут созданы матчи группового этапа.`)) return;
+            
+            fetch(`${API_BASE}/admin/draw-groups`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groupsCount })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Жеребьёвка проведена успешно! Создано ${data.matchesCreated} матчей.`);
+                    loadGroups();
+                    loadMatchesAdmin();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Проверьте количество команд'));
+                }
+            });
+        }
+        
+        function loadGroups() {
+            // В реальной реализации здесь была бы загрузка созданных групп
+            const container = document.getElementById('groupsContainer');
+            container.innerHTML = `
+                <div class="glass-effect" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-random" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
+                    <h3>Группы ещё не созданы</h3>
+                    <p>Проведите жеребьёвку для создания групп</p>
+                </div>
+            `;
+        }
+        
+        // Матчи
+        function loadTeamsForSelect() {
+            fetch(`${API_BASE}/teams`)
+            .then(res => res.json())
+            .then(teams => {
+                const team1Select = document.getElementById('team1Select');
+                const team2Select = document.getElementById('team2Select');
+                
+                if (!team1Select || !team2Select) return;
+                
+                const options = teams.map(team => 
+                    `<option value="${team.id}">${team.teamName} (${team.ownerName})</option>`
+                ).join('');
+                
+                team1Select.innerHTML = `<option value="">Выберите команду</option>${options}`;
+                team2Select.innerHTML = `<option value="">Выберите команду</option>${options}`;
+            });
+        }
+        
+        function createMatch() {
+            const team1Id = parseInt(document.getElementById('team1Select').value);
+            const team2Id = parseInt(document.getElementById('team2Select').value);
+            const date = document.getElementById('matchDate').value;
+            const time = document.getElementById('matchTime').value;
+            const group = document.getElementById('matchGroup').value;
+            
+            if (!team1Id || !team2Id) {
+                alert('Выберите обе команды!');
+                return;
+            }
+            
+            if (team1Id === team2Id) {
+                alert('Команды не могут играть сами с собой!');
+                return;
+            }
+            
+            const matchData = { team1Id, team2Id, date, time, group };
+            
+            fetch(`${API_BASE}/admin/create-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(matchData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Матч создан!');
+                    document.getElementById('matchDate').value = '';
+                    document.getElementById('matchGroup').value = '';
+                    loadMatchesAdmin();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Не удалось создать матч'));
+                }
+            });
+        }
+        
+        function loadMatchesAdmin() {
+            fetch(`${API_BASE}/matches`)
+            .then(res => res.json())
+            .then(data => {
+                renderAdminMatches(data);
+            });
+        }
+        
+        function renderAdminMatches(data) {
+            const container = document.getElementById('adminMatchesContainer');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="matches-section active">
+                    <h3><i class="fas fa-clock"></i> Предстоящие матчи (${data.upcoming.length})</h3>
+                    ${renderMatchList(data.upcoming, 'upcoming')}
+                </div>
+                <div class="matches-section">
+                    <h3><i class="fas fa-broadcast-tower"></i> LIVE матчи (${data.live.length})</h3>
+                    ${renderMatchList(data.live, 'live')}
+                </div>
+                <div class="matches-section">
+                    <h3><i class="fas fa-flag-checkered"></i> Завершённые матчи (${data.completed.length})</h3>
+                    ${renderMatchList(data.completed, 'completed')}
+                </div>
+            `;
+        }
+        
+        function renderMatchList(matches, category) {
+            if (matches.length === 0) {
+                return `<div class="glass-effect" style="text-align: center; padding: 30px; margin-top: 20px;">
+                    <p>Нет матчей в этой категории</p>
+                </div>`;
+            }
+            
+            return matches.map(match => `
+                <div class="match-admin-item glass-effect" style="margin-top: 15px;">
+                    <div class="match-header">
+                        <div class="match-date">${match.date} ${match.time}</div>
+                        <div class="match-group">${match.group}</div>
+                    </div>
+                    
+                    <div class="match-teams">
+                        <div class="team-name">${match.team1Name}</div>
+                        <div class="vs">VS</div>
+                        <div class="team-name">${match.team2Name}</div>
+                    </div>
+                    
+                    ${category === 'completed' ? `
+                        <div class="match-score">
+                            <input type="number" class="score-input" id="score1_${match.id}" value="${match.score1}" min="0">
+                            <span>:</span>
+                            <input type="number" class="score-input" id="score2_${match.id}" value="${match.score2}" min="0">
+                        </div>
+                        <div class="match-controls">
+                            <button onclick="updateMatch(${match.id})" class="btn btn-primary btn-sm">
+                                <i class="fas fa-save"></i> Обновить счёт
+                            </button>
+                            <button onclick="startLive(${match.id})" class="btn btn-warning btn-sm">
+                                <i class="fas fa-redo"></i> Запустить LIVE
+                            </button>
+                            <button onclick="deleteMatch(${match.id})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                        </div>
+                    ` : category === 'live' ? `
+                        <div class="match-score">
+                            <input type="number" class="score-input" id="score1_${match.id}" value="${match.score1}" min="0">
+                            <span>:</span>
+                            <input type="number" class="score-input" id="score2_${match.id}" value="${match.score2}" min="0">
+                        </div>
+                        <div class="match-controls">
+                            <button onclick="updateMatch(${match.id})" class="btn btn-primary btn-sm">
+                                <i class="fas fa-sync"></i> Обновить LIVE
+                            </button>
+                            <button onclick="completeMatch(${match.id})" class="btn btn-success btn-sm">
+                                <i class="fas fa-flag-checkered"></i> Завершить матч
+                            </button>
+                            <button onclick="deleteMatch(${match.id})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="match-controls">
+                            <button onclick="startLive(${match.id})" class="btn btn-success btn-sm">
+                                <i class="fas fa-play"></i> Начать LIVE
+                            </button>
+                            <button onclick="completeMatch(${match.id})" class="btn btn-primary btn-sm">
+                                <i class="fas fa-flag-checkered"></i> Завершить (без LIVE)
+                            </button>
+                            <button onclick="deleteMatch(${match.id})" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Удалить
+                            </button>
+                        </div>
+                    `}
+                </div>
+            `).join('');
+        }
+        
+        function showAdminMatchTab(tabName) {
+            const container = document.getElementById('adminMatchesContainer');
+            const sections = container.querySelectorAll('.matches-section');
+            const tabs = document.querySelectorAll('.match-tab');
+            
+            sections.forEach((section, index) => {
+                section.classList.toggle('active', index === (tabName === 'upcoming' ? 0 : tabName === 'live' ? 1 : 2));
+            });
+            
+            tabs.forEach((tab, index) => {
+                tab.classList.toggle('active', index === (tabName === 'upcoming' ? 0 : tabName === 'live' ? 1 : 2));
+            });
+        }
+        
+        function updateMatch(matchId) {
+            const score1 = document.getElementById(`score1_${matchId}`).value;
+            const score2 = document.getElementById(`score2_${matchId}`).value;
+            
+            fetch(`${API_BASE}/admin/update-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId, score1, score2 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Счёт обновлён!');
+                    loadMatchesAdmin();
+                    loadConfirmedTeams();
+                }
+            });
+        }
+        
+        function startLive(matchId) {
+            fetch(`${API_BASE}/admin/update-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId, status: 'live' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Матч переведён в LIVE!');
+                    loadMatchesAdmin();
+                }
+            });
+        }
+        
+        function completeMatch(matchId) {
+            const score1 = document.getElementById(`score1_${matchId}`)?.value || 0;
+            const score2 = document.getElementById(`score2_${matchId}`)?.value || 0;
+            
+            fetch(`${API_BASE}/admin/update-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    matchId, 
+                    score1, 
+                    score2,
+                    status: 'completed' 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Матч завершён! Статистика обновлена.');
+                    loadMatchesAdmin();
+                    loadConfirmedTeams();
+                }
+            });
+        }
+        
+        function deleteMatch(matchId) {
+            if (!confirm('Удалить этот матч?')) return;
+            
+            fetch(`${API_BASE}/admin/delete-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Матч удалён!');
+                    loadMatchesAdmin();
+                }
+            });
+        }
+        
+        // Новости
+        function loadAdminNews() {
+            fetch(`${API_BASE}/news`)
+            .then(res => res.json())
+            .then(news => {
+                const container = document.getElementById('adminNewsList');
+                if (!container) return;
+                
+                if (news.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 30px;">
+                            <p>Новостей пока нет</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = news.map(item => `
+                    <div class="news-item glass-effect" style="margin-bottom: 20px;">
+                        ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" class="news-image">` : ''}
+                        <h4>${item.title}</h4>
+                        <p>${item.content}</p>
+                        <div class="news-meta">
+                            <span>${item.date} ${item.time}</span>
+                            <div class="news-actions">
+                                <button onclick="editNews(${item.id})" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Изменить
+                                </button>
+                                <button onclick="deleteNews(${item.id})" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Удалить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            });
+        }
+        
+        function addNews() {
+            const title = document.getElementById('newsTitle').value;
+            const content = document.getElementById('newsContent').value;
+            const imageUrl = document.getElementById('newsImageUrl').value;
+            
+            if (!title || !content) {
+                alert('Заполните заголовок и текст новости!');
+                return;
+            }
+            
+            fetch(`${API_BASE}/admin/add-news`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content, imageUrl })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Новость добавлена!');
+                    document.getElementById('newsTitle').value = '';
+                    document.getElementById('newsContent').value = '';
+                    document.getElementById('newsImageUrl').value = '';
+                    loadAdminNews();
+                }
+            });
+        }
+        
+        function editNews(newsId) {
+            const title = prompt('Новый заголовок:');
+            const content = prompt('Новый текст новости:');
+            const imageUrl = prompt('Новый URL изображения (оставьте пустым чтобы удалить):');
+            
+            if (title === null && content === null && imageUrl === null) return;
+            
+            fetch(`${API_BASE}/admin/edit-news`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id: newsId, 
+                    title: title || undefined, 
+                    content: content || undefined,
+                    imageUrl: imageUrl !== null ? imageUrl : undefined 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Новость обновлена!');
+                    loadAdminNews();
+                }
+            });
+        }
+        
+        function deleteNews(newsId) {
+            if (!confirm('Удалить эту новость?')) return;
+            
+            fetch(`${API_BASE}/admin/delete-news`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: newsId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Новость удалена!');
+                    loadAdminNews();
+                }
+            });
+        }
+        
+        // Инициализация даты матча
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('matchDate').value = today;
+            document.getElementById('matchDate').min = today;
+        });
+    </script>
+    
+    <style>
+        .admin-section.hidden {
+            display: none;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        .news-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .matches-section {
+            display: none;
+        }
+        
+        .matches-section.active {
+            display: block;
+        }
+    </style>
+</body>
+</html>
