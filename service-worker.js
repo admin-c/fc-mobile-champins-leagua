@@ -5,7 +5,6 @@ const urlsToCache = [
   '/main.html',
   '/table.html',
   '/matches.html',
-  '/admin.html',
   '/style.css',
   '/script.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
@@ -126,4 +125,5 @@ self.addEventListener('notificationclick', event => {
         return clients.openWindow(event.notification.data.url);
       })
   );
+
 });
