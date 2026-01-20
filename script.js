@@ -489,27 +489,6 @@ function showAlert(message, type = 'info', duration = 4000) {
 }
 
 // Функция для проверки подключения
-function checkConnection() {
-    if (!navigator.onLine) {
-        showAlert('📶 Нет подключения к интернету. Некоторые функции могут не работать.', 'warning', 0);
-    }
-}
-
-// Инициализация проверки соединения
-window.addEventListener('online', () => {
-    showAlert('✅ Подключение восстановлено!', 'success');
-    // Перезагружаем данные
-    if (document.getElementById('tableBody')) loadTable();
-    if (document.getElementById('newsContainer')) loadNews();
-});
-
-window.addEventListener('offline', () => {
-    showAlert('📶 Потеряно подключение к интернету', 'error', 0);
-});
-
-// Проверяем при загрузке
-document.addEventListener('DOMContentLoaded', checkConnection);
-
 // Функция для обновления данных каждые 30 секунд
 function startAutoRefresh() {
     setInterval(() => {
@@ -536,4 +515,5 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
 
