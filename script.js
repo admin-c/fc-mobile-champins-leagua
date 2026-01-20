@@ -1,5 +1,5 @@
 // ⚠️ ЗАМЕНИТЕ ЭТУ СТРОКУ НА ВАШ РЕАЛЬНЫЙ URL С RENDER.COM
-const API_BASE = 'https://ваше-приложение.onrender.com/api';
+const API_BASE = 'https://fc-mobile-dido-league.onrender.com/api';
 
 // Частицы для фона
 function createParticles() {
@@ -512,4 +512,5 @@ function startAutoRefresh() {
 // Запускаем автообновление на страницах где нужно
 if (document.getElementById('tableBody') || document.getElementById('newsContainer')) {
     startAutoRefresh();
+
 }
