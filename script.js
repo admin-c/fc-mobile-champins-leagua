@@ -1,5 +1,64 @@
-// ⚠️ ЗАМЕНИТЕ ЭТУ СТРОКУ НА ВАШ РЕАЛЬНЫЙ URL С RENDER.COM
-const API_BASE = 'https://fc-mobile-dido-league.onrender.com/api';
+// ⚠️ ВСТАВЬТЕ ВАШ API СЮДА
+const API_BASE = 'https://ваше-приложение.onrender.com/api';
+
+let deferredPrompt;
+
+// Обработчик для PWA установки
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Предотвращаем автоматический показ баннера
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Показываем нашу кнопку установки
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+        installBtn.addEventListener('click', installPWA);
+    }
+    
+    // Также показываем на других страницах
+    setTimeout(() => {
+        document.querySelectorAll('.install-btn').forEach(btn => {
+            if (btn.id !== 'installBtn') {
+                btn.style.display = 'flex';
+                btn.addEventListener('click', installPWA);
+            }
+        });
+    }, 1000);
+});
+
+// Функция установки PWA
+async function installPWA() {
+    if (!deferredPrompt) {
+        alert('Установка уже доступна через меню браузера');
+        return;
+    }
+    
+    deferredPrompt.prompt();
+    
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+        console.log('Пользователь принял установку PWA');
+        // Скрываем все кнопки установки
+        document.querySelectorAll('.install-btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
+    } else {
+        console.log('Пользователь отклонил установку PWA');
+    }
+    
+    deferredPrompt = null;
+}
+
+// Проверка, если PWA уже установлено
+window.addEventListener('appinstalled', () => {
+    console.log('PWA успешно установлено');
+    deferredPrompt = null;
+    document.querySelectorAll('.install-btn').forEach(btn => {
+        btn.style.display = 'none';
+    });
+});
 
 // Частицы для фона
 function createParticles() {
@@ -58,9 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.location.pathname.includes('main.html')) {
         loadUserInfo();
     }
-    
-    // Проверка статуса PWA
-    checkPWAStatus();
 });
 
 // Регистрация команды
@@ -207,26 +263,11 @@ async function loadTable() {
         tbody.innerHTML = teams.map((team, index) => {
             const goalDifference = team.goalsFor - team.goalsAgainst;
             
-            // Цвет строки в зависимости от позиции
-            let rowClass = '';
-            let positionClass = '';
-            
-            if (teams.length >= 8) {
-                if (index < 4) {
-                    rowClass = 'cl-row';
-                    positionClass = 'position-cl';
-                } else if (index < 8) {
-                    rowClass = 'el-row';
-                    positionClass = 'position-el';
-                } else if (index > teams.length - 3) {
-                    rowClass = 'rel-row';
-                    positionClass = 'position-rel';
-                }
-            }
-            
             return `
-                <tr class="${rowClass}">
-                    <td class="position-cell ${positionClass}">${index + 1}</td>
+                <tr>
+                    <td class="position-cell">
+                        <strong>${index + 1}</strong>
+                    </td>
                     <td class="team-name-cell">
                         <strong>${team.teamName}</strong>
                         <br>
@@ -251,16 +292,6 @@ async function loadTable() {
             const style = document.createElement('style');
             style.id = 'table-styles';
             style.textContent = `
-                .cl-row { background: rgba(144, 238, 144, 0.1); }
-                .el-row { background: rgba(173, 216, 230, 0.1); }
-                .rel-row { background: rgba(255, 99, 71, 0.1); }
-                .position-cell {
-                    font-weight: 800;
-                    font-size: 1.1rem;
-                }
-                .position-cl { color: #27ae60; }
-                .position-el { color: #3498db; }
-                .position-rel { color: #e74c3c; }
                 .team-name-cell { text-align: left; padding-left: 20px; }
                 .positive { color: #27ae60; font-weight: 700; }
                 .negative { color: #e74c3c; font-weight: 700; }
@@ -294,7 +325,6 @@ function setupTableSorting() {
             this.classList.add('active');
             
             // В этом упрощенном варианте просто перезагружаем таблицу
-            // В реальном приложении можно сортировать локально
             loadTable();
         });
     });
@@ -333,18 +363,6 @@ function loadUserInfo() {
                 showAlert(`👋 Добро пожаловать, ${ownerName}! Ваша команда: ${userTeam}`, 'info', 5000);
             }, 1000);
         }
-    }
-}
-
-// Проверка статуса PWA
-function checkPWAStatus() {
-    const installBtn = document.getElementById('installBtn');
-    if (!installBtn) return;
-    
-    // Проверяем, установлено ли уже PWA
-    if (window.matchMedia('(display-mode: standalone)').matches || 
-        window.navigator.standalone === true) {
-        installBtn.style.display = 'none';
     }
 }
 
@@ -436,6 +454,11 @@ function showAlert(message, type = 'info', duration = 4000) {
                 to { transform: translateX(0); opacity: 1; }
             }
             
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
             @media (max-width: 768px) {
                 .custom-alert {
                     top: 10px;
@@ -462,19 +485,6 @@ function showAlert(message, type = 'info', duration = 4000) {
                 }, 300);
             }
         }, duration);
-    }
-    
-    // Добавляем анимацию исчезновения
-    if (!document.querySelector('#alert-out-styles')) {
-        const style = document.createElement('style');
-        style.id = 'alert-out-styles';
-        style.textContent = `
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
     }
 }
 
@@ -512,5 +522,17 @@ function startAutoRefresh() {
 // Запускаем автообновление на страницах где нужно
 if (document.getElementById('tableBody') || document.getElementById('newsContainer')) {
     startAutoRefresh();
+}
 
+// Service Worker регистрация
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+                console.log('Service Worker зарегистрирован:', registration.scope);
+            })
+            .catch(error => {
+                console.log('Ошибка регистрации Service Worker:', error);
+            });
+    });
 }
