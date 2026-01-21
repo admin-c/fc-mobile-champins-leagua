@@ -95,34 +95,26 @@
                 </div>
             </div>
 
-            <!-- Жеребьёвка -->
+            <!-- Жеребьёвка (упрощенная) -->
             <div class="admin-content" id="drawTab">
                 <div class="section-title">
                     <i class="fas fa-random"></i>
-                    <h2>Жеребьёвка групп</h2>
+                    <h2>Жеребьёвка турнира</h2>
                 </div>
                 
                 <div class="glass-effect" style="margin-bottom: 24px;">
                     <h3><i class="fas fa-info-circle"></i> Информация</h3>
-                    <p style="margin: 12px 0;">Система автоматически распределит команды по группам и создаст матчи группового этапа.</p>
+                    <p style="margin: 12px 0;">Система случайным образом создаст пары команд для первого тура.</p>
                     <div class="draw-controls">
-                        <div class="form-group" style="margin: 0;">
-                            <label>Количество групп:</label>
-                            <select id="groupsCount" class="modern-input" style="width: auto;">
-                                <option value="4">4 группы</option>
-                                <option value="6">6 групп</option>
-                                <option value="8">8 групп</option>
-                            </select>
-                        </div>
-                        <button onclick="drawGroups()" class="btn btn-primary">
+                        <button onclick="drawTournament()" class="btn btn-primary">
                             <i class="fas fa-random"></i>
                             Провести жеребьёвку
                         </button>
                     </div>
                 </div>
                 
-                <div class="groups-container" id="groupsContainer">
-                    <!-- Группы появятся после жеребьёвки -->
+                <div id="drawResults">
+                    <!-- Результаты жеребьёвки появятся здесь -->
                 </div>
             </div>
 
@@ -226,7 +218,11 @@
         </div>
     </div>
 
+    <!-- ВАЖНО: Подключаем script.js ПЕРВЫМ, чтобы API_BASE была доступна -->
+    <script src="script.js"></script>
+    
     <script>
+        // Теперь API_BASE доступна из script.js
         
         function login() {
             const password = document.getElementById('adminPassword').value;
@@ -280,7 +276,7 @@
             
             // Загрузить данные если нужно
             if (tabName === 'draw') {
-                loadGroups();
+                loadDrawResults();
             }
         }
         
@@ -443,39 +439,75 @@
             });
         }
         
-        // Жеребьёвка
-        function drawGroups() {
-            const groupsCount = parseInt(document.getElementById('groupsCount').value);
+        // Жеребьёвка (упрощенная)
+        function drawTournament() {
+            if (!confirm('Провести жеребьёвку турнира? Будут созданы матчи первого тура.')) return;
             
-            if (!confirm(`Провести жеребьёвку на ${groupsCount} группы? Будут созданы матчи группового этапа.`)) return;
-            
-            fetch(`${API_BASE}/admin/draw-groups`, {
+            fetch(`${API_BASE}/admin/draw-tournament`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ groupsCount })
+                headers: { 'Content-Type': 'application/json' }
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Жеребьёвка проведена успешно! Создано ${data.matchesCreated} матчей.`);
-                    loadGroups();
+                    alert(data.message);
                     loadMatchesAdmin();
+                    showDrawResults(data.matches || []);
                 } else {
                     alert('Ошибка: ' + (data.error || 'Проверьте количество команд'));
                 }
             });
         }
         
-        function loadGroups() {
-            // В реальной реализации здесь была бы загрузка созданных групп
-            const container = document.getElementById('groupsContainer');
+        function showDrawResults(matches) {
+            const container = document.getElementById('drawResults');
+            if (!container) return;
+            
+            if (matches.length === 0) {
+                container.innerHTML = `
+                    <div class="glass-effect" style="text-align: center; padding: 40px;">
+                        <p>Матчи ещё не созданы</p>
+                    </div>
+                `;
+                return;
+            }
+            
             container.innerHTML = `
-                <div class="glass-effect" style="text-align: center; padding: 40px;">
-                    <i class="fas fa-random" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
-                    <h3>Группы ещё не созданы</h3>
-                    <p>Проведите жеребьёвку для создания групп</p>
+                <div class="glass-effect">
+                    <h3><i class="fas fa-list-ol"></i> Созданные матчи</h3>
+                    ${matches.map(match => `
+                        <div class="match-preview" style="padding: 12px; margin: 10px 0; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${match.team1Name}</strong> vs <strong>${match.team2Name}</strong>
+                                </div>
+                                <div style="font-size: 0.9rem; opacity: 0.8;">
+                                    ${match.date} ${match.time}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
+        }
+        
+        function loadDrawResults() {
+            // Загружаем предстоящие матчи как результаты жеребьёвки
+            fetch(`${API_BASE}/matches`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.upcoming && data.upcoming.length > 0) {
+                    showDrawResults(data.upcoming);
+                } else {
+                    document.getElementById('drawResults').innerHTML = `
+                        <div class="glass-effect" style="text-align: center; padding: 40px;">
+                            <i class="fas fa-random" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
+                            <h3>Жеребьёвка не проводилась</h3>
+                            <p>Нажмите кнопку "Провести жеребьёвку"</p>
+                        </div>
+                    `;
+                }
+            });
         }
         
         // Матчи
@@ -528,6 +560,7 @@
                     document.getElementById('matchDate').value = '';
                     document.getElementById('matchGroup').value = '';
                     loadMatchesAdmin();
+                    loadDrawResults();
                 } else {
                     alert('Ошибка: ' + (data.error || 'Не удалось создать матч'));
                 }
@@ -662,6 +695,7 @@
                     alert('Счёт обновлён!');
                     loadMatchesAdmin();
                     loadConfirmedTeams();
+                    loadDrawResults();
                 }
             });
         }
@@ -718,6 +752,7 @@
                 if (data.success) {
                     alert('Матч удалён!');
                     loadMatchesAdmin();
+                    loadDrawResults();
                 }
             });
         }
@@ -874,7 +909,15 @@
         .matches-section.active {
             display: block;
         }
+        
+        .match-preview {
+            transition: all 0.3s ease;
+        }
+        
+        .match-preview:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-2px);
+        }
     </style>
 </body>
 </html>
-
