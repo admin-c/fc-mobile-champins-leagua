@@ -48,6 +48,12 @@
         .matches-section.active {
             display: block;
         }
+        
+        .team-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -264,6 +270,7 @@
     <script>
         // ⚠️ ВСТАВЬТЕ ВАШ API СЮДА
         const API_BASE = 'https://fc-mobile-dido-league.onrender.com/api';
+        
         function login() {
             const password = document.getElementById('adminPassword').value;
             
@@ -441,9 +448,12 @@
                                 <span class="stat-value">${team.draws}</span>
                             </div>
                         </div>
-                        <div class="match-controls">
+                        <div class="team-actions">
                             <button onclick="resetTeamStats(${team.id})" class="btn btn-warning btn-sm">
                                 <i class="fas fa-redo"></i> Сбросить
+                            </button>
+                            <button onclick="deleteTeam(${team.id}, '${team.teamName}')" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Удалить
                             </button>
                         </div>
                     </div>
@@ -476,6 +486,31 @@
                     alert('Статистика сброшена!');
                     loadConfirmedTeams();
                 }
+            });
+        }
+        
+        // Удаление команды
+        function deleteTeam(teamId, teamName) {
+            if (!confirm(`Удалить команду "${teamName}"? Это действие нельзя отменить!`)) return;
+            
+            fetch(`${API_BASE}/admin/delete-team`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Команда "${teamName}" удалена!`);
+                    loadConfirmedTeams();
+                    loadTeamsForSelect();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Не удалось удалить команду'));
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка удаления команды:', error);
+                alert('Ошибка соединения с сервером');
             });
         }
         
@@ -897,4 +932,3 @@
     </script>
 </body>
 </html>
-
