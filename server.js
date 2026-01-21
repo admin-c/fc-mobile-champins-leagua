@@ -1,278 +1,312 @@
 const express = require('express');
+const pg = require('pg');
+const redis = require('redis');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(__dirname));
+app.use(express.json());
+app.use(express.static('public'));
 
-// 🔐 БЕЗОПАСНОЕ ПОЛУЧЕНИЕ ПЕРЕМЕННЫХ ОКРУЖЕНИЯ
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const REPO_OWNER = process.env.REPO_OWNER || 'admin-c'; // ваш username
-const REPO_NAME = process.env.REPO_NAME || 'libil-league-data';
-const BRANCH = 'main';
-
-// Проверяем наличие токена
-if (!GITHUB_TOKEN) {
-  console.error('❌ ОШИБКА: GITHUB_TOKEN не установлен!');
-  console.log('На Render.com добавьте переменную окружения GITHUB_TOKEN');
-}
-
-const githubAPI = axios.create({
-  baseURL: 'https://api.github.com',
-  headers: {
-    'Authorization': `token ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'Libil-League-App'
-  }
+// PostgreSQL подключение
+const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL || 'postgresql://localhost/libil_league',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-// 📁 Локальное кэширование для работы без интернета
-let cache = {
-  teams: { teams: [], confirmedTeams: [] },
-  news: { news: [] },
-  matches: { upcoming: [], live: [], completed: [] },
-  lastUpdated: {}
-};
+// Redis подключение
+let redisClient;
+(async () => {
+    redisClient = redis.createClient({
+        url: process.env.REDIS_URL || 'redis://localhost:6379'
+    });
+    
+    redisClient.on('error', (err) => console.log('Redis Client Error', err));
+    
+    await redisClient.connect();
+    console.log('Connected to Redis');
+})();
 
-// 🔄 Синхронизация с GitHub
-async function syncWithGitHub(fileName, initialData = {}) {
-  try {
-    if (!GITHUB_TOKEN) {
-      console.log(`⚠️ GitHub токен не настроен, использую локальный кэш для ${fileName}`);
-      return cache[fileName] || initialData;
-    }
-
-    const response = await githubAPI.get(
-      `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fileName}`
-    );
-    
-    const content = Buffer.from(response.data.content, 'base64').toString();
-    const data = JSON.parse(content);
-    
-    // Сохраняем в кэш
-    cache[fileName] = data;
-    cache.lastUpdated[fileName] = Date.now();
-    
-    console.log(`✅ Данные ${fileName} загружены из GitHub`);
-    return data;
-    
-  } catch (error) {
-    if (error.response?.status === 404) {
-      // Файл не существует, создаем его
-      console.log(`📝 Файл ${fileName} не найден, создаем...`);
-      await saveToGitHub(fileName, initialData);
-      return initialData;
-    }
-    
-    console.log(`⚠️ Ошибка загрузки ${fileName}: ${error.message}, использую кэш`);
-    return cache[fileName] || initialData;
-  }
-}
-
-// 💾 Сохранение в GitHub
-async function saveToGitHub(fileName, data) {
-  try {
-    if (!GITHUB_TOKEN) {
-      console.log(`⚠️ GitHub токен не настроен, сохраняю в локальный кэш: ${fileName}`);
-      cache[fileName] = data;
-      return { success: true, local: true };
-    }
-
-    let sha = null;
+// Создание таблиц при запуске
+async function initDatabase() {
     try {
-      const currentFile = await githubAPI.get(
-        `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fileName}`
-      );
-      sha = currentFile.data.sha;
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS teams (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100) NOT NULL UNIQUE,
+                captain_name VARCHAR(100) NOT NULL,
+                email VARCHAR(100) NOT NULL,
+                phone VARCHAR(20),
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS admins (
+                id SERIAL PRIMARY KEY,
+                login VARCHAR(50) NOT NULL UNIQUE,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+
+            INSERT INTO admins (login, password_hash) 
+            SELECT 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq6L.8OUh5Zr1fzLd2WOQqCfB.wL36'
+            WHERE NOT EXISTS (SELECT 1 FROM admins WHERE login = 'admin');
+        `);
+        console.log('Database initialized');
     } catch (error) {
-      // Файла нет, создаем новый
+        console.error('Database initialization error:', error);
     }
-    
-    const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-    
-    await githubAPI.put(
-      `/repos/${REPO_OWNER}/${REPO_NAME}/contents/${fileName}`,
-      {
-        message: `Auto-update ${fileName} at ${new Date().toISOString()}`,
-        content: content,
-        sha: sha,
-        branch: BRANCH
-      }
-    );
-    
-    cache[fileName] = data;
-    console.log(`✅ Данные ${fileName} сохранены в GitHub`);
-    return { success: true };
-    
-  } catch (error) {
-    console.error(`❌ Ошибка сохранения ${fileName}:`, error.message);
-    
-    // Сохраняем в локальный кэш как fallback
-    cache[fileName] = data;
-    return { success: false, error: error.message, local: true };
-  }
 }
 
-// 📊 API endpoints
+// Генерация JWT токена
+function generateToken(payload, expiresIn = '24h') {
+    return jwt.sign(payload, process.env.JWT_SECRET || 'your-secret-key', { expiresIn });
+}
+
+// Middleware проверки JWT
+function verifyToken(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Требуется авторизация' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ error: 'Неверный токен' });
+    }
+}
+
+// API маршруты
+
+// Получить список всех команд (публичный)
 app.get('/api/teams', async (req, res) => {
-  try {
-    const data = await syncWithGitHub('teams.json', { teams: [], confirmedTeams: [] });
-    res.json(data.confirmedTeams || []);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка чтения команд' });
-  }
+    try {
+        const cachedTeams = await redisClient.get('teams:all');
+        
+        if (cachedTeams) {
+            return res.json(JSON.parse(cachedTeams));
+        }
+        
+        const result = await pool.query(
+            'SELECT id, name, captain_name, email, phone, created_at FROM teams ORDER BY created_at DESC'
+        );
+        
+        await redisClient.setEx('teams:all', 60, JSON.stringify(result.rows));
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching teams:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
 });
 
-app.get('/api/admin/pending', async (req, res) => {
-  try {
-    const data = await syncWithGitHub('teams.json', { teams: [], confirmedTeams: [] });
-    res.json((data.teams || []).filter(team => team.status === 'pending'));
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка чтения заявок' });
-  }
-});
-
-// 📝 Регистрация команды
-app.post('/api/register', async (req, res) => {
-  try {
-    const { teamName, ownerName } = req.body;
+// Создание новой команды
+app.post('/api/teams', async (req, res) => {
+    const { name, captain_name, email, phone, password } = req.body;
     
-    if (!teamName || !ownerName) {
-      return res.json({ success: false, error: 'Заполните все поля' });
+    if (!name || !captain_name || !email) {
+        return res.status(400).json({ error: 'Заполните обязательные поля' });
     }
     
-    const data = await syncWithGitHub('teams.json', { teams: [], confirmedTeams: [] });
-    
-    const newTeam = {
-      id: Date.now(),
-      teamName,
-      ownerName,
-      points: 0,
-      played: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      goalsFor: 0,
-      goalsAgainst: 0,
-      goalDifference: 0,
-      status: 'pending',
-      registrationDate: new Date().toISOString()
-    };
-    
-    data.teams = data.teams || [];
-    data.teams.push(newTeam);
-    
-    const saveResult = await saveToGitHub('teams.json', data);
-    
-    res.json({ 
-      success: true, 
-      message: 'Заявка отправлена на подтверждение',
-      local: saveResult.local
-    });
-    
-  } catch (error) {
-    console.error('Ошибка регистрации:', error);
-    res.status(500).json({ error: 'Ошибка регистрации' });
-  }
-});
-
-// ✅ Подтверждение команды
-app.post('/api/admin/confirm', async (req, res) => {
-  try {
-    const { teamId } = req.body;
-    const data = await syncWithGitHub('teams.json', { teams: [], confirmedTeams: [] });
-    
-    const teamIndex = data.teams.findIndex(t => t.id === teamId);
-    if (teamIndex !== -1) {
-      data.teams[teamIndex].status = 'confirmed';
-      data.confirmedTeams = data.confirmedTeams || [];
-      data.confirmedTeams.push(data.teams[teamIndex]);
-      
-      await saveToGitHub('teams.json', data);
-      res.json({ success: true });
-    } else {
-      res.json({ success: false, error: 'Команда не найдена' });
+    try {
+        // Проверка существующей команды с таким именем
+        const existingTeam = await pool.query(
+            'SELECT id FROM teams WHERE name = $1',
+            [name]
+        );
+        
+        if (existingTeam.rows.length > 0) {
+            return res.status(400).json({ error: 'Команда с таким названием уже существует' });
+        }
+        
+        // Генерация пароля
+        const plainPassword = password || Math.random().toString(36).slice(-8);
+        const passwordHash = await bcrypt.hash(plainPassword, 10);
+        
+        // Сохранение в базу данных
+        const result = await pool.query(
+            `INSERT INTO teams (name, captain_name, email, phone, password_hash) 
+             VALUES ($1, $2, $3, $4, $5) 
+             RETURNING id, name, captain_name, email, phone, created_at`,
+            [name, captain_name, email, phone, passwordHash]
+        );
+        
+        // Инвалидация кеша
+        await redisClient.del('teams:all');
+        
+        res.status(201).json({
+            id: result.rows[0].id,
+            password: plainPassword,
+            message: 'Команда успешно создана'
+        });
+    } catch (error) {
+        console.error('Error creating team:', error);
+        res.status(500).json({ error: 'Ошибка создания команды' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка подтверждения' });
-  }
 });
 
-// 📰 Новости
-app.get('/api/news', async (req, res) => {
-  try {
-    const data = await syncWithGitHub('news.json', { news: [] });
-    res.json(data.news || []);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка чтения новостей' });
-  }
-});
-
-app.post('/api/admin/add-news', async (req, res) => {
-  try {
-    const { title, content, imageUrl } = req.body;
-    const data = await syncWithGitHub('news.json', { news: [] });
+// Вход команды
+app.post('/api/login', async (req, res) => {
+    const { teamId, password } = req.body;
     
-    const newNews = {
-      id: Date.now(),
-      title,
-      content,
-      imageUrl: imageUrl || null,
-      date: new Date().toLocaleDateString('ru-RU'),
-      time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-    };
+    if (!teamId || !password) {
+        return res.status(400).json({ error: 'Введите ID команды и пароль' });
+    }
     
-    data.news = data.news || [];
-    data.news.unshift(newNews);
+    try {
+        const result = await pool.query(
+            `SELECT id, name, captain_name, email, password_hash 
+             FROM teams WHERE id = $1`,
+            [teamId]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: 'Команда не найдена' });
+        }
+        
+        const team = result.rows[0];
+        const isValidPassword = await bcrypt.compare(password, team.password_hash);
+        
+        if (!isValidPassword) {
+            return res.status(401).json({ error: 'Неверный пароль' });
+        }
+        
+        // Создание сессии в Redis
+        const sessionId = `session:${Date.now()}:${team.id}`;
+        await redisClient.setEx(sessionId, 86400, JSON.stringify({
+            teamId: team.id,
+            teamName: team.name
+        }));
+        
+        res.json({
+            success: true,
+            team: {
+                id: team.id,
+                name: team.name,
+                captain_name: team.captain_name,
+                email: team.email
+            },
+            sessionId
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Ошибка входа' });
+    }
+});
+
+// Административные маршруты
+
+// Вход администратора
+app.post('/api/admin/login', async (req, res) => {
+    const { login, password } = req.body;
     
-    await saveToGitHub('news.json', data);
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка добавления новости' });
-  }
+    if (!login || !password) {
+        return res.status(400).json({ error: 'Введите логин и пароль' });
+    }
+    
+    try {
+        const result = await pool.query(
+            'SELECT id, login, password_hash FROM admins WHERE login = $1',
+            [login]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: 'Неверные учетные данные' });
+        }
+        
+        const admin = result.rows[0];
+        const isValidPassword = await bcrypt.compare(password, admin.password_hash);
+        
+        if (!isValidPassword) {
+            return res.status(401).json({ error: 'Неверные учетные данные' });
+        }
+        
+        const token = generateToken({ id: admin.id, login: admin.login }, '8h');
+        
+        res.json({
+            success: true,
+            token,
+            admin: { id: admin.id, login: admin.login }
+        });
+    } catch (error) {
+        console.error('Admin login error:', error);
+        res.status(500).json({ error: 'Ошибка входа' });
+    }
 });
 
-// ⚽ Матчи
-app.get('/api/matches', async (req, res) => {
-  try {
-    const data = await syncWithGitHub('matches.json', { 
-      upcoming: [], 
-      live: [], 
-      completed: [] 
-    });
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: 'Ошибка чтения матчей' });
-  }
+// Проверка токена администратора
+app.get('/api/admin/verify', verifyToken, (req, res) => {
+    res.json({ valid: true, admin: req.user });
 });
 
-// 📊 Информация о состоянии
-app.get('/api/status', (req, res) => {
-  res.json({
-    status: 'online',
-    githubConnected: !!GITHUB_TOKEN,
-    cacheSize: Object.keys(cache).length,
-    lastUpdated: cache.lastUpdated,
-    timestamp: new Date().toISOString()
-  });
+// Получить все команды (админ)
+app.get('/api/admin/teams', verifyToken, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT id, name, captain_name, email, phone, created_at FROM teams ORDER BY created_at DESC'
+        );
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching teams for admin:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
 });
 
-// Все остальные маршруты
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// Удаление команды (админ)
+app.delete('/api/admin/teams/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        await pool.query('DELETE FROM teams WHERE id = $1', [id]);
+        
+        // Инвалидация кеша
+        await redisClient.del('teams:all');
+        
+        res.json({ success: true, message: 'Команда удалена' });
+    } catch (error) {
+        console.error('Error deleting team:', error);
+        res.status(500).json({ error: 'Ошибка удаления команды' });
+    }
 });
 
-// 🚀 Запуск сервера
-app.listen(PORT, () => {
-  console.log(`✅ Сервер запущен на порту ${PORT}`);
-  console.log(`🌐 GitHub подключение: ${GITHUB_TOKEN ? '✅ Настроено' : '❌ Не настроено'}`);
-  console.log(`💾 Кэш: ${Object.keys(cache).length} файлов готово`);
-  console.log(`📊 API Status: http://localhost:${PORT}/api/status`);
+// Статистика (админ)
+app.get('/api/admin/stats', verifyToken, async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        const totalTeams = await pool.query('SELECT COUNT(*) FROM teams');
+        const todayTeams = await pool.query(
+            'SELECT COUNT(*) FROM teams WHERE DATE(created_at) = $1',
+            [today]
+        );
+        const lastTeam = await pool.query(
+            'SELECT name, created_at FROM teams ORDER BY created_at DESC LIMIT 1'
+        );
+        
+        res.json({
+            total: parseInt(totalTeams.rows[0].count),
+            today: parseInt(todayTeams.rows[0].count),
+            last_registration: lastTeam.rows[0] || null
+        });
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ error: 'Ошибка получения статистики' });
+    }
+});
+
+// Запуск сервера
+app.listen(PORT, async () => {
+    await initDatabase();
+    console.log(`Server running on port ${PORT}`);
 });
