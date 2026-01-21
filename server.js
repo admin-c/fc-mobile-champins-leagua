@@ -18,7 +18,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Хранение данных в памяти (работает на Render.com)
+// Хранение данных в памяти
 let database = {
   teams: [],
   confirmedTeams: [],
@@ -64,9 +64,7 @@ app.post('/api/register', (req, res) => {
     
     database.teams.push(newTeam);
     
-    // Логируем в консоль Render.com
     console.log(`✅ Новая заявка: ${teamName} (${ownerName})`);
-    console.log(`📊 Всего заявок: ${database.teams.length}`);
     
     res.json({ success: true, message: 'Заявка отправлена на подтверждение' });
   } catch (error) {
@@ -129,6 +127,36 @@ app.post('/api/admin/reject', (req, res) => {
   }
 });
 
+// API для удаления команды
+app.post('/api/admin/delete-team', (req, res) => {
+  try {
+    const { teamId } = req.body;
+    
+    // Ищем команду в confirmedTeams
+    const teamIndex = database.confirmedTeams.findIndex(t => t.id === teamId);
+    if (teamIndex !== -1) {
+      const teamName = database.confirmedTeams[teamIndex].teamName;
+      
+      // Удаляем из confirmedTeams
+      database.confirmedTeams.splice(teamIndex, 1);
+      
+      // Также помечаем как удаленную в teams
+      const originalTeamIndex = database.teams.findIndex(t => t.id === teamId);
+      if (originalTeamIndex !== -1) {
+        database.teams[originalTeamIndex].status = 'deleted';
+      }
+      
+      console.log(`🗑️ Удалена команда: ${teamName}`);
+      res.json({ success: true, message: `Команда "${teamName}" удалена` });
+    } else {
+      res.json({ success: false, error: 'Команда не найдена' });
+    }
+  } catch (error) {
+    console.error('Ошибка удаления команды:', error);
+    res.status(500).json({ error: 'Ошибка удаления команды' });
+  }
+});
+
 // API для обновления результатов команды
 app.post('/api/admin/update-results', (req, res) => {
   try {
@@ -166,15 +194,12 @@ app.post('/api/admin/update-match', (req, res) => {
     
     let matchFound = false;
     let matchToUpdate = null;
-    let originalCategory = null;
     
-    // Ищем матч
     ['upcoming', 'live', 'completed'].forEach(category => {
       const matchIndex = matches[category].findIndex(m => m.id === matchId);
       if (matchIndex !== -1) {
         matchFound = true;
         matchToUpdate = matches[category][matchIndex];
-        originalCategory = category;
       }
     });
     
@@ -183,13 +208,10 @@ app.post('/api/admin/update-match', (req, res) => {
       return;
     }
     
-    // Обновляем счет
     if (score1 !== undefined) matchToUpdate.score1 = parseInt(score1) || 0;
     if (score2 !== undefined) matchToUpdate.score2 = parseInt(score2) || 0;
     
-    // Если статус изменен
     if (status && status !== matchToUpdate.status) {
-      // Удаляем из старой категории
       ['upcoming', 'live', 'completed'].forEach(category => {
         const matchIndex = matches[category].findIndex(m => m.id === matchId);
         if (matchIndex !== -1) {
@@ -197,11 +219,9 @@ app.post('/api/admin/update-match', (req, res) => {
         }
       });
       
-      // Добавляем в новую
       matchToUpdate.status = status;
       matches[status].push(matchToUpdate);
       
-      // Если матч завершен - обновляем статистику
       if (status === 'completed') {
         updateTeamStats(matchToUpdate.team1Id, matchToUpdate.team2Id, 
           matchToUpdate.score1, matchToUpdate.score2);
@@ -217,7 +237,6 @@ app.post('/api/admin/update-match', (req, res) => {
   }
 });
 
-// Функция обновления статистики команд
 function updateTeamStats(team1Id, team2Id, score1, score2) {
   const team1Index = database.confirmedTeams.findIndex(t => t.id === team1Id);
   const team2Index = database.confirmedTeams.findIndex(t => t.id === team2Id);
@@ -230,15 +249,11 @@ function updateTeamStats(team1Id, team2Id, score1, score2) {
   const s1 = parseInt(score1) || 0;
   const s2 = parseInt(score2) || 0;
   
-  console.log(`📈 Обновление статистики: ${team1.teamName} ${s1}:${s2} ${team2.teamName}`);
-  
-  // Обновляем голы
   team1.goalsFor += s1;
   team1.goalsAgainst += s2;
   team2.goalsFor += s2;
   team2.goalsAgainst += s1;
   
-  // Результат
   if (s1 > s2) {
     team1.wins += 1;
     team1.points += 3;
@@ -270,14 +285,12 @@ app.post('/api/admin/draw-tournament', (req, res) => {
       return;
     }
     
-    // Перемешиваем
     const shuffledTeams = [...teams];
     for (let i = shuffledTeams.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledTeams[i], shuffledTeams[j]] = [shuffledTeams[j], shuffledTeams[i]];
     }
     
-    // Создаем матчи
     const newMatches = [];
     const matchDate = new Date();
     
@@ -304,7 +317,6 @@ app.post('/api/admin/draw-tournament', (req, res) => {
       }
     }
     
-    // Заменяем upcoming матчи
     matches.upcoming = newMatches;
     
     console.log(`🎲 Жеребьевка проведена! Создано ${newMatches.length} матчей`);
@@ -416,10 +428,9 @@ app.post('/api/admin/add-news', (req, res) => {
       time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
     };
     
-    news.unshift(newNews); // Добавляем в начало
+    news.unshift(newNews);
     
     console.log(`📰 Добавлена новость: "${title}"`);
-    console.log(`📊 Всего новостей: ${news.length}`);
     
     res.json({ success: true });
   } catch (error) {
@@ -470,7 +481,6 @@ app.post('/api/admin/delete-news', (req, res) => {
 
 // Инициализация начальных данных
 function initData() {
-  // Добавляем тестовые данные если пусто
   if (database.confirmedTeams.length === 0) {
     database.confirmedTeams.push({
       id: 1,
@@ -501,9 +511,6 @@ function initData() {
   }
   
   console.log('📊 Инициализированы начальные данные');
-  console.log(`👥 Команд: ${database.confirmedTeams.length}`);
-  console.log(`📰 Новостей: ${news.length}`);
-  console.log(`⚽ Матчей: ${matches.upcoming.length + matches.live.length + matches.completed.length}`);
 }
 
 // Все остальные маршруты
@@ -515,8 +522,4 @@ app.get('*', (req, res) => {
 initData();
 app.listen(PORT, () => {
   console.log(`🚀 Сервер запущен на порту ${PORT}`);
-  console.log(`🌐 Сайт: https://fc-mobile-dido-league.onrender.com`);
-  console.log(`🔐 Админка: https://fc-mobile-dido-league.onrender.com/admin.html (пароль: Ali)`);
-  console.log(`📊 API команд: https://fc-mobile-dido-league.onrender.com/api/teams`);
-  console.log(`📰 API новостей: https://fc-mobile-dido-league.onrender.com/api/news`);
 });
