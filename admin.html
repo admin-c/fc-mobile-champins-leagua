@@ -6,6 +6,49 @@
     <title>Админ панель - ЛЪибилская Лига</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .admin-login {
+            max-width: 400px;
+            margin: 60px auto;
+            padding: 32px;
+        }
+        
+        .admin-section.hidden {
+            display: none;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            color: var(--secondary);
+        }
+        
+        .news-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .matches-section {
+            display: none;
+        }
+        
+        .matches-section.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <div class="animated-bg"></div>
@@ -95,7 +138,7 @@
                 </div>
             </div>
 
-            <!-- Жеребьёвка (упрощенная) -->
+            <!-- Жеребьёвка -->
             <div class="admin-content" id="drawTab">
                 <div class="section-title">
                     <i class="fas fa-random"></i>
@@ -149,8 +192,8 @@
                         <input type="time" id="matchTime" class="modern-input" value="20:00">
                     </div>
                     <div class="form-group">
-                        <label>Группа:</label>
-                        <input type="text" id="matchGroup" class="modern-input" placeholder="Группа A">
+                        <label>Тур:</label>
+                        <input type="text" id="matchRound" class="modern-input" placeholder="Тур 1" value="Тур 1">
                     </div>
                     <button onclick="createMatch()" class="btn btn-success">
                         <i class="fas fa-plus"></i>
@@ -218,11 +261,8 @@
         </div>
     </div>
 
-    <!-- ВАЖНО: Подключаем script.js ПЕРВЫМ, чтобы API_BASE была доступна -->
-    <script src="script.js"></script>
-    
     <script>
-        // Теперь API_BASE доступна из script.js
+        // ⚠️ ВСТАВЬТЕ ВАШ API СЮДА
         
         function login() {
             const password = document.getElementById('adminPassword').value;
@@ -492,22 +532,8 @@
         }
         
         function loadDrawResults() {
-            // Загружаем предстоящие матчи как результаты жеребьёвки
-            fetch(`${API_BASE}/matches`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.upcoming && data.upcoming.length > 0) {
-                    showDrawResults(data.upcoming);
-                } else {
-                    document.getElementById('drawResults').innerHTML = `
-                        <div class="glass-effect" style="text-align: center; padding: 40px;">
-                            <i class="fas fa-random" style="font-size: 48px; color: var(--accent); margin-bottom: 20px;"></i>
-                            <h3>Жеребьёвка не проводилась</h3>
-                            <p>Нажмите кнопку "Провести жеребьёвку"</p>
-                        </div>
-                    `;
-                }
-            });
+            // В этой версии просто показываем пустой контейнер
+            // В будущем можно загружать существующие матчи
         }
         
         // Матчи
@@ -534,7 +560,7 @@
             const team2Id = parseInt(document.getElementById('team2Select').value);
             const date = document.getElementById('matchDate').value;
             const time = document.getElementById('matchTime').value;
-            const group = document.getElementById('matchGroup').value;
+            const round = document.getElementById('matchRound').value;
             
             if (!team1Id || !team2Id) {
                 alert('Выберите обе команды!');
@@ -546,7 +572,7 @@
                 return;
             }
             
-            const matchData = { team1Id, team2Id, date, time, group };
+            const matchData = { team1Id, team2Id, date, time, round };
             
             fetch(`${API_BASE}/admin/create-match`, {
                 method: 'POST',
@@ -558,9 +584,8 @@
                 if (data.success) {
                     alert('Матч создан!');
                     document.getElementById('matchDate').value = '';
-                    document.getElementById('matchGroup').value = '';
+                    document.getElementById('matchRound').value = 'Тур 1';
                     loadMatchesAdmin();
-                    loadDrawResults();
                 } else {
                     alert('Ошибка: ' + (data.error || 'Не удалось создать матч'));
                 }
@@ -606,7 +631,7 @@
                 <div class="match-admin-item glass-effect" style="margin-top: 15px;">
                     <div class="match-header">
                         <div class="match-date">${match.date} ${match.time}</div>
-                        <div class="match-group">${match.group}</div>
+                        <div class="match-round">${match.round || 'Тур 1'}</div>
                     </div>
                     
                     <div class="match-teams">
@@ -695,7 +720,6 @@
                     alert('Счёт обновлён!');
                     loadMatchesAdmin();
                     loadConfirmedTeams();
-                    loadDrawResults();
                 }
             });
         }
@@ -752,7 +776,6 @@
                 if (data.success) {
                     alert('Матч удалён!');
                     loadMatchesAdmin();
-                    loadDrawResults();
                 }
             });
         }
@@ -872,52 +895,5 @@
             document.getElementById('matchDate').min = today;
         });
     </script>
-    
-    <style>
-        .admin-section.hidden {
-            display: none;
-        }
-        
-        .stat {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .stat-value {
-            font-weight: 700;
-            color: var(--secondary);
-        }
-        
-        .news-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .matches-section {
-            display: none;
-        }
-        
-        .matches-section.active {
-            display: block;
-        }
-        
-        .match-preview {
-            transition: all 0.3s ease;
-        }
-        
-        .match-preview:hover {
-            background: rgba(255, 255, 255, 0.1) !important;
-            transform: translateY(-2px);
-        }
-    </style>
 </body>
 </html>
