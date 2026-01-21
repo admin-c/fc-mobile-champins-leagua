@@ -2,105 +2,213 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0c2461">
-    <title>ЛЪибилская Лига - FC Mobile</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЛЪибилская Лига</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card { transition: transform 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .password-toggle { cursor: pointer; }
+    </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
-    <div class="particles-container" id="particles"></div>
-    
-    <div class="container slim">
-        <header class="main-header">
-            <div class="logo-container">
-                <div class="logo">
-                    <i class="fas fa-trophy trophy-icon"></i>
-                    <span class="logo-text">ЛЛ</span>
-                </div>
-                <h1 class="league-name">ЛЪИБИЛСКАЯ ЛИГА</h1>
-                <p class="league-subtitle">Чемпионат по FC Mobile</p>
-            </div>
-        </header>
+    <nav class="navbar navbar-expand-lg navbar-dark hero">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">ЛЪибилская Лига</a>
+            <span class="text-light">FC Mobile</span>
+        </div>
+    </nav>
 
-        <main class="main-content">
-            <div class="registration-card glass-effect">
-                <div class="card-header">
-                    <i class="fas fa-user-plus"></i>
-                    <h2>Регистрация на чемпионат</h2>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Войти в команду</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="teamId" class="form-label">ID команды</label>
+                                <input type="text" class="form-control" id="teamId" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="teamPassword" class="form-label">Пароль команды</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="teamPassword" required>
+                                    <span class="input-group-text password-toggle" id="togglePassword">
+                                        👁️
+                                    </span>
+                                </div>
+                                <small class="text-muted">Пароль выдается при создании команды</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Войти</button>
+                        </form>
+                    </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="teamName">
-                        <i class="fas fa-flag"></i>
-                        Название команды
-                    </label>
-                    <input type="text" id="teamName" placeholder="Ваша команда" class="modern-input">
-                </div>
-                
-                <div class="form-group">
-                    <label for="ownerName">
-                        <i class="fas fa-user"></i>
-                        Ваш никнейм
-                    </label>
-                    <input type="text" id="ownerName" placeholder="Ваш ник" class="modern-input">
-                </div>
-                
-                <button id="registerBtn" class="register-btn">
-                    <i class="fas fa-paper-plane"></i>
-                    <span>Записаться</span>
-                </button>
-                
-                <div class="already-registered">
-                    <p>Уже зарегистрированы?</p>
-                    <a href="main.html" class="already-btn">
-                        <i class="fas fa-arrow-right"></i>
-                        Войти в меню
-                    </a>
-                </div>
-            </div>
-            
-            <div class="quick-links">
-                <a href="table.html" class="quick-link">
-                    <i class="fas fa-table"></i>
-                    Турнирная таблица
-                </a>
-                <a href="matches.html" class="quick-link">
-                    <i class="fas fa-futbol"></i>
-                    Матчи
-                </a>
-                <a href="main.html" class="quick-link">
-                    <i class="fas fa-newspaper"></i>
-                    Новости
-                </a>
-            </div>
-        </main>
 
-        <footer class="main-footer">
-            <div class="install-container">
-                <button id="installBtn" class="install-btn">
-                    <i class="fas fa-download"></i>
-                    Установить приложение
-                </button>
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Создать новую команду</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="teamName" class="form-label">Название команды</label>
+                                <input type="text" class="form-control" id="teamName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="captainName" class="form-label">Имя капитана</label>
+                                <input type="text" class="form-control" id="captainName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email для связи</label>
+                                <input type="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Телефон</label>
+                                <input type="tel" class="form-control" id="phone">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customPassword" class="form-label">Пароль (или оставьте пустым для автогенерации)</label>
+                                <input type="text" class="form-control" id="customPassword">
+                                <small class="text-muted">Минимум 6 символов</small>
+                            </div>
+                            <button type="submit" class="btn btn-success">Создать команду</button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <p class="copyright">© 2026 ЛЪибилская Лига</p>
-        </footer>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Информация о лиге</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Чемпионат проводится каждые выходные (Сб-Вс) с 24.01.2026.<br>
+                            Все матчи проходят в FC Mobile. Регистрация бесплатная.
+                        </p>
+                        <hr>
+                        <h6>Зарегистрированные команды:</h6>
+                        <ul id="teamsList" class="list-group list-group-flush">
+                            <li class="list-group-item">Загрузка...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Регистрация PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js');
-            });
+        // DOM элементы
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const teamsList = document.getElementById('teamsList');
+        const togglePassword = document.getElementById('togglePassword');
+        const teamPasswordInput = document.getElementById('teamPassword');
+
+        // Показать/скрыть пароль
+        togglePassword.addEventListener('click', () => {
+            const type = teamPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            teamPasswordInput.setAttribute('type', type);
+        });
+
+        // Загрузить список команд
+        async function loadTeams() {
+            try {
+                const response = await fetch('/api/teams');
+                const teams = await response.json();
+                
+                teamsList.innerHTML = '';
+                teams.forEach(team => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <div>
+                            <strong>${team.name}</strong><br>
+                            <small class="text-muted">Капитан: ${team.captain_name}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">ID: ${team.id}</span>
+                    `;
+                    teamsList.appendChild(li);
+                });
+            } catch (error) {
+                teamsList.innerHTML = '<li class="list-group-item text-danger">Ошибка загрузки списка команд</li>';
+            }
         }
 
-        // Установка PWA
+        // Вход в команду
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const teamId = document.getElementById('teamId').value;
+            const password = document.getElementById('teamPassword').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamId, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`Добро пожаловать, ${data.team.name}!`);
+                    // Здесь можно перейти на страницу команды
+                } else {
+                    alert(data.error || 'Ошибка входа');
+                }
+            } catch (error) {
+                alert('Ошибка соединения с сервером');
+            }
+        });
+
+        // Регистрация новой команды
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const teamData = {
+                name: document.getElementById('teamName').value,
+                captain_name: document.getElementById('captainName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                password: document.getElementById('customPassword').value || undefined
+            };
+            
+            if (teamData.password && teamData.password.length < 6) {
+                alert('Пароль должен содержать минимум 6 символов');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/teams', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(teamData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`Команда создана! ID: ${data.id}\nПароль: ${data.password}\nСохраните эти данные!`);
+                    registerForm.reset();
+                    loadTeams();
+                } else {
+                    alert(data.error || 'Ошибка создания команды');
+                }
+            } catch (error) {
+                alert('Ошибка соединения с сервером');
+            }
+        });
+
+        // Загрузить список команд при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadTeams);
     </script>
 </body>
-
 </html>
