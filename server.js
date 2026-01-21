@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -19,44 +18,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Файлы базы данных
-const DB_FILE = 'db.json';
-const NEWS_FILE = 'news.json';
-const MATCHES_FILE = 'matches.json';
+// Хранение данных в памяти (работает на Render.com)
+let database = {
+  teams: [],
+  confirmedTeams: [],
+  adminPassword: "Ali"
+};
 
-// Инициализация базы данных
-function initDB() {
-  if (!fs.existsSync(DB_FILE)) {
-    const initialData = {
-      teams: [],
-      confirmedTeams: [],
-      adminPassword: "Ali"
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialData, null, 2));
-  }
-  
-  if (!fs.existsSync(NEWS_FILE)) {
-    const initialNews = {
-      news: []
-    };
-    fs.writeFileSync(NEWS_FILE, JSON.stringify(initialNews, null, 2));
-  }
-  
-  if (!fs.existsSync(MATCHES_FILE)) {
-    const initialMatches = {
-      upcoming: [],
-      live: [],
-      completed: []
-    };
-    fs.writeFileSync(MATCHES_FILE, JSON.stringify(initialMatches, null, 2));
-  }
-}
+let news = [];
+let matches = {
+  upcoming: [],
+  live: [],
+  completed: []
+};
 
 // API для получения команд
 app.get('/api/teams', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
-    res.json(data.confirmedTeams);
+    res.json(database.confirmedTeams);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка чтения данных' });
   }
@@ -66,7 +45,6 @@ app.get('/api/teams', (req, res) => {
 app.post('/api/register', (req, res) => {
   try {
     const { teamName, ownerName } = req.body;
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
     
     const newTeam = {
       id: Date.now(),
@@ -84,11 +62,15 @@ app.post('/api/register', (req, res) => {
       registrationDate: new Date().toISOString()
     };
     
-    data.teams.push(newTeam);
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+    database.teams.push(newTeam);
+    
+    // Логируем в консоль Render.com
+    console.log(`✅ Новая заявка: ${teamName} (${ownerName})`);
+    console.log(`📊 Всего заявок: ${database.teams.length}`);
     
     res.json({ success: true, message: 'Заявка отправлена на подтверждение' });
   } catch (error) {
+    console.error('Ошибка регистрации:', error);
     res.status(500).json({ error: 'Ошибка регистрации' });
   }
 });
@@ -96,9 +78,8 @@ app.post('/api/register', (req, res) => {
 // API для админ-панели
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
-  const data = JSON.parse(fs.readFileSync(DB_FILE));
   
-  if (password === data.adminPassword) {
+  if (password === database.adminPassword) {
     res.json({ success: true });
   } else {
     res.json({ success: false });
@@ -107,8 +88,7 @@ app.post('/api/admin/login', (req, res) => {
 
 app.get('/api/admin/pending', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
-    res.json(data.teams.filter(team => team.status === 'pending'));
+    res.json(database.teams.filter(team => team.status === 'pending'));
   } catch (error) {
     res.status(500).json({ error: 'Ошибка чтения' });
   }
@@ -117,13 +97,12 @@ app.get('/api/admin/pending', (req, res) => {
 app.post('/api/admin/confirm', (req, res) => {
   try {
     const { teamId } = req.body;
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
     
-    const teamIndex = data.teams.findIndex(t => t.id === teamId);
+    const teamIndex = database.teams.findIndex(t => t.id === teamId);
     if (teamIndex !== -1) {
-      data.teams[teamIndex].status = 'confirmed';
-      data.confirmedTeams.push(data.teams[teamIndex]);
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+      database.teams[teamIndex].status = 'confirmed';
+      database.confirmedTeams.push(database.teams[teamIndex]);
+      console.log(`✅ Команда подтверждена: ${database.teams[teamIndex].teamName}`);
       res.json({ success: true });
     } else {
       res.json({ success: false });
@@ -136,12 +115,11 @@ app.post('/api/admin/confirm', (req, res) => {
 app.post('/api/admin/reject', (req, res) => {
   try {
     const { teamId } = req.body;
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
     
-    const teamIndex = data.teams.findIndex(t => t.id === teamId);
+    const teamIndex = database.teams.findIndex(t => t.id === teamId);
     if (teamIndex !== -1) {
-      data.teams[teamIndex].status = 'rejected';
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+      console.log(`❌ Заявка отклонена: ${database.teams[teamIndex].teamName}`);
+      database.teams[teamIndex].status = 'rejected';
       res.json({ success: true });
     } else {
       res.json({ success: false });
@@ -151,29 +129,26 @@ app.post('/api/admin/reject', (req, res) => {
   }
 });
 
-// API для обновления результатов команды (СБРОС СТАТИСТИКИ)
+// API для обновления результатов команды
 app.post('/api/admin/update-results', (req, res) => {
   try {
     const { teamId, points, wins, draws, losses, goalsFor, goalsAgainst } = req.body;
-    const data = JSON.parse(fs.readFileSync(DB_FILE));
     
-    const teamIndex = data.confirmedTeams.findIndex(t => t.id === teamId);
+    const teamIndex = database.confirmedTeams.findIndex(t => t.id === teamId);
     if (teamIndex !== -1) {
-      const team = data.confirmedTeams[teamIndex];
+      const team = database.confirmedTeams[teamIndex];
       
-      // Обновляем статистику
-      team.points = points !== undefined ? parseInt(points) : 0;
-      team.wins = wins !== undefined ? parseInt(wins) : 0;
-      team.draws = draws !== undefined ? parseInt(draws) : 0;
-      team.losses = losses !== undefined ? parseInt(losses) : 0;
-      team.goalsFor = goalsFor !== undefined ? parseInt(goalsFor) : 0;
-      team.goalsAgainst = goalsAgainst !== undefined ? parseInt(goalsAgainst) : 0;
+      team.points = points !== undefined ? parseInt(points) : team.points;
+      team.wins = wins !== undefined ? parseInt(wins) : team.wins;
+      team.draws = draws !== undefined ? parseInt(draws) : team.draws;
+      team.losses = losses !== undefined ? parseInt(losses) : team.losses;
+      team.goalsFor = goalsFor !== undefined ? parseInt(goalsFor) : team.goalsFor;
+      team.goalsAgainst = goalsAgainst !== undefined ? parseInt(goalsAgainst) : team.goalsAgainst;
       
-      // Пересчитываем производные показатели
       team.played = team.wins + team.draws + team.losses;
       team.goalDifference = team.goalsFor - team.goalsAgainst;
       
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+      console.log(`📊 Обновлена статистика: ${team.teamName}`);
       res.json({ success: true });
     } else {
       res.json({ success: false, error: 'Команда не найдена' });
@@ -188,19 +163,17 @@ app.post('/api/admin/update-results', (req, res) => {
 app.post('/api/admin/update-match', (req, res) => {
   try {
     const { matchId, score1, score2, status } = req.body;
-    const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
-    const teamsData = JSON.parse(fs.readFileSync(DB_FILE));
     
     let matchFound = false;
     let matchToUpdate = null;
     let originalCategory = null;
     
-    // Ищем матч во всех категориях
+    // Ищем матч
     ['upcoming', 'live', 'completed'].forEach(category => {
-      const matchIndex = matchesData[category].findIndex(m => m.id === matchId);
+      const matchIndex = matches[category].findIndex(m => m.id === matchId);
       if (matchIndex !== -1) {
         matchFound = true;
-        matchToUpdate = matchesData[category][matchIndex];
+        matchToUpdate = matches[category][matchIndex];
         originalCategory = category;
       }
     });
@@ -210,37 +183,32 @@ app.post('/api/admin/update-match', (req, res) => {
       return;
     }
     
-    // Обновляем счет если указан
+    // Обновляем счет
     if (score1 !== undefined) matchToUpdate.score1 = parseInt(score1) || 0;
     if (score2 !== undefined) matchToUpdate.score2 = parseInt(score2) || 0;
     
     // Если статус изменен
     if (status && status !== matchToUpdate.status) {
-      // Удаляем матч из старой категории
+      // Удаляем из старой категории
       ['upcoming', 'live', 'completed'].forEach(category => {
-        const matchIndex = matchesData[category].findIndex(m => m.id === matchId);
+        const matchIndex = matches[category].findIndex(m => m.id === matchId);
         if (matchIndex !== -1) {
-          matchesData[category].splice(matchIndex, 1);
+          matches[category].splice(matchIndex, 1);
         }
       });
       
-      // Добавляем в новую категорию
+      // Добавляем в новую
       matchToUpdate.status = status;
-      matchesData[status].push(matchToUpdate);
+      matches[status].push(matchToUpdate);
       
-      // Если матч завершен - обновляем статистику команд
-      if (status === 'completed' && score1 !== undefined && score2 !== undefined) {
-        updateTeamStats(teamsData, matchToUpdate.team1Id, matchToUpdate.team2Id, score1, score2);
+      // Если матч завершен - обновляем статистику
+      if (status === 'completed') {
+        updateTeamStats(matchToUpdate.team1Id, matchToUpdate.team2Id, 
+          matchToUpdate.score1, matchToUpdate.score2);
       }
-    } else if (matchToUpdate.status === 'completed' && (score1 !== undefined || score2 !== undefined)) {
-      // Если матч уже завершен и обновляется счет
-      updateTeamStats(teamsData, matchToUpdate.team1Id, matchToUpdate.team2Id, 
-        score1 !== undefined ? score1 : matchToUpdate.score1,
-        score2 !== undefined ? score2 : matchToUpdate.score2);
     }
     
-    fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesData, null, 2));
-    fs.writeFileSync(DB_FILE, JSON.stringify(teamsData, null, 2));
+    console.log(`⚽ Обновлен матч: ${matchToUpdate.team1Name} vs ${matchToUpdate.team2Name}`);
     res.json({ success: true });
     
   } catch (error) {
@@ -250,22 +218,19 @@ app.post('/api/admin/update-match', (req, res) => {
 });
 
 // Функция обновления статистики команд
-function updateTeamStats(teamsData, team1Id, team2Id, score1, score2) {
-  const team1Index = teamsData.confirmedTeams.findIndex(t => t.id === team1Id);
-  const team2Index = teamsData.confirmedTeams.findIndex(t => t.id === team2Id);
+function updateTeamStats(team1Id, team2Id, score1, score2) {
+  const team1Index = database.confirmedTeams.findIndex(t => t.id === team1Id);
+  const team2Index = database.confirmedTeams.findIndex(t => t.id === team2Id);
   
-  if (team1Index === -1 || team2Index === -1) {
-    console.log('Одна из команд не найдена');
-    return;
-  }
+  if (team1Index === -1 || team2Index === -1) return;
   
-  const team1 = teamsData.confirmedTeams[team1Index];
-  const team2 = teamsData.confirmedTeams[team2Index];
+  const team1 = database.confirmedTeams[team1Index];
+  const team2 = database.confirmedTeams[team2Index];
   
   const s1 = parseInt(score1) || 0;
   const s2 = parseInt(score2) || 0;
   
-  console.log(`Обновление статистики: ${team1.teamName} ${s1}:${s2} ${team2.teamName}`);
+  console.log(`📈 Обновление статистики: ${team1.teamName} ${s1}:${s2} ${team2.teamName}`);
   
   // Обновляем голы
   team1.goalsFor += s1;
@@ -273,57 +238,46 @@ function updateTeamStats(teamsData, team1Id, team2Id, score1, score2) {
   team2.goalsFor += s2;
   team2.goalsAgainst += s1;
   
-  // Определяем результат
+  // Результат
   if (s1 > s2) {
-    // Команда 1 выиграла
     team1.wins += 1;
     team1.points += 3;
     team2.losses += 1;
   } else if (s1 < s2) {
-    // Команда 2 выиграла
     team2.wins += 1;
     team2.points += 3;
     team1.losses += 1;
   } else {
-    // Ничья
     team1.draws += 1;
     team2.draws += 1;
     team1.points += 1;
     team2.points += 1;
   }
   
-  // Обновляем общую статистику
   team1.played = team1.wins + team1.draws + team1.losses;
   team2.played = team2.wins + team2.draws + team2.losses;
   
-  // Обновляем разницу мячей
   team1.goalDifference = team1.goalsFor - team1.goalsAgainst;
   team2.goalDifference = team2.goalsFor - team2.goalsAgainst;
-  
-  console.log(`${team1.teamName}: очки=${team1.points}, матчи=${team1.played}`);
-  console.log(`${team2.teamName}: очки=${team2.points}, матчи=${team2.played}`);
 }
 
 // API для жеребьевки
 app.post('/api/admin/draw-tournament', (req, res) => {
   try {
-    const teamsData = JSON.parse(fs.readFileSync(DB_FILE));
-    const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
-    
-    const teams = [...teamsData.confirmedTeams];
+    const teams = [...database.confirmedTeams];
     if (teams.length < 2) {
       res.json({ success: false, error: 'Нужно минимум 2 команды для жеребьевки' });
       return;
     }
     
-    // Перемешиваем команды
+    // Перемешиваем
     const shuffledTeams = [...teams];
     for (let i = shuffledTeams.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledTeams[i], shuffledTeams[j]] = [shuffledTeams[j], shuffledTeams[i]];
     }
     
-    // Создаем пары для первого тура
+    // Создаем матчи
     const newMatches = [];
     const matchDate = new Date();
     
@@ -343,24 +297,17 @@ app.post('/api/admin/draw-tournament', (req, res) => {
           score1: 0,
           score2: 0,
           status: 'upcoming',
-          round: 'Тур 1',
-          originalCategory: 'upcoming'
+          round: 'Тур 1'
         };
         
         newMatches.push(match);
       }
     }
     
-    // Если нечетное количество команд - одна команда проходит без игры
-    if (shuffledTeams.length % 2 !== 0) {
-      const freeTeam = shuffledTeams[shuffledTeams.length - 1];
-      console.log(`${freeTeam.teamName} проходит без игры в первом туре`);
-    }
+    // Заменяем upcoming матчи
+    matches.upcoming = newMatches;
     
-    // Очищаем старые матчи (только upcoming) и добавляем новые
-    matchesData.upcoming = newMatches;
-    fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesData, null, 2));
-    
+    console.log(`🎲 Жеребьевка проведена! Создано ${newMatches.length} матчей`);
     res.json({ 
       success: true, 
       message: `Жеребьевка проведена! Создано ${newMatches.length} матчей.`,
@@ -373,25 +320,21 @@ app.post('/api/admin/draw-tournament', (req, res) => {
   }
 });
 
-// API для получения матчей
+// API для матчей
 app.get('/api/matches', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(MATCHES_FILE));
-    res.json(data);
+    res.json(matches);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка чтения матчей' });
   }
 });
 
-// API для создания матча
 app.post('/api/admin/create-match', (req, res) => {
   try {
     const { team1Id, team2Id, date, time, round } = req.body;
-    const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
-    const teamsData = JSON.parse(fs.readFileSync(DB_FILE));
     
-    const team1 = teamsData.confirmedTeams.find(t => t.id === team1Id);
-    const team2 = teamsData.confirmedTeams.find(t => t.id === team2Id);
+    const team1 = database.confirmedTeams.find(t => t.id === team1Id);
+    const team2 = database.confirmedTeams.find(t => t.id === team2Id);
     
     if (!team1 || !team2) {
       res.json({ success: false, error: 'Команды не найдены' });
@@ -409,13 +352,11 @@ app.post('/api/admin/create-match', (req, res) => {
       score1: 0,
       score2: 0,
       status: 'upcoming',
-      round: round || 'Тур 1',
-      originalCategory: 'upcoming'
+      round: round || 'Тур 1'
     };
     
-    matchesData.upcoming.push(newMatch);
-    fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesData, null, 2));
-    
+    matches.upcoming.push(newMatch);
+    console.log(`➕ Создан матч: ${team1.teamName} vs ${team2.teamName}`);
     res.json({ success: true, match: newMatch });
   } catch (error) {
     console.error('Ошибка создания матча:', error);
@@ -423,23 +364,22 @@ app.post('/api/admin/create-match', (req, res) => {
   }
 });
 
-// API для удаления матча
 app.post('/api/admin/delete-match', (req, res) => {
   try {
     const { matchId } = req.body;
-    const matchesData = JSON.parse(fs.readFileSync(MATCHES_FILE));
     
     let deleted = false;
     ['upcoming', 'live', 'completed'].forEach(category => {
-      const matchIndex = matchesData[category].findIndex(m => m.id === matchId);
+      const matchIndex = matches[category].findIndex(m => m.id === matchId);
       if (matchIndex !== -1) {
-        matchesData[category].splice(matchIndex, 1);
+        const match = matches[category][matchIndex];
+        console.log(`🗑️ Удален матч: ${match.team1Name} vs ${match.team2Name}`);
+        matches[category].splice(matchIndex, 1);
         deleted = true;
       }
     });
     
     if (deleted) {
-      fs.writeFileSync(MATCHES_FILE, JSON.stringify(matchesData, null, 2));
       res.json({ success: true });
     } else {
       res.json({ success: false, error: 'Матч не найден' });
@@ -452,8 +392,7 @@ app.post('/api/admin/delete-match', (req, res) => {
 // API для новостей
 app.get('/api/news', (req, res) => {
   try {
-    const data = JSON.parse(fs.readFileSync(NEWS_FILE));
-    res.json(data.news);
+    res.json(news);
   } catch (error) {
     res.status(500).json({ error: 'Ошибка чтения новостей' });
   }
@@ -462,7 +401,11 @@ app.get('/api/news', (req, res) => {
 app.post('/api/admin/add-news', (req, res) => {
   try {
     const { title, content, imageUrl } = req.body;
-    const data = JSON.parse(fs.readFileSync(NEWS_FILE));
+    
+    if (!title || !content) {
+      res.json({ success: false, error: 'Заполните заголовок и текст' });
+      return;
+    }
     
     const newNews = {
       id: Date.now(),
@@ -473,10 +416,14 @@ app.post('/api/admin/add-news', (req, res) => {
       time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
     };
     
-    data.news.unshift(newNews);
-    fs.writeFileSync(NEWS_FILE, JSON.stringify(data, null, 2));
+    news.unshift(newNews); // Добавляем в начало
+    
+    console.log(`📰 Добавлена новость: "${title}"`);
+    console.log(`📊 Всего новостей: ${news.length}`);
+    
     res.json({ success: true });
   } catch (error) {
+    console.error('Ошибка добавления новости:', error);
     res.status(500).json({ error: 'Ошибка добавления новости' });
   }
 });
@@ -484,17 +431,17 @@ app.post('/api/admin/add-news', (req, res) => {
 app.post('/api/admin/edit-news', (req, res) => {
   try {
     const { id, title, content, imageUrl } = req.body;
-    const data = JSON.parse(fs.readFileSync(NEWS_FILE));
     
-    const newsIndex = data.news.findIndex(n => n.id === id);
+    const newsIndex = news.findIndex(n => n.id === id);
     if (newsIndex !== -1) {
-      data.news[newsIndex] = {
-        ...data.news[newsIndex],
-        title: title || data.news[newsIndex].title,
-        content: content || data.news[newsIndex].content,
-        imageUrl: imageUrl !== undefined ? imageUrl : data.news[newsIndex].imageUrl
+      news[newsIndex] = {
+        ...news[newsIndex],
+        title: title || news[newsIndex].title,
+        content: content || news[newsIndex].content,
+        imageUrl: imageUrl !== undefined ? imageUrl : news[newsIndex].imageUrl
       };
-      fs.writeFileSync(NEWS_FILE, JSON.stringify(data, null, 2));
+      
+      console.log(`✏️ Обновлена новость ID ${id}`);
       res.json({ success: true });
     } else {
       res.json({ success: false, error: 'Новость не найдена' });
@@ -507,12 +454,11 @@ app.post('/api/admin/edit-news', (req, res) => {
 app.post('/api/admin/delete-news', (req, res) => {
   try {
     const { id } = req.body;
-    const data = JSON.parse(fs.readFileSync(NEWS_FILE));
     
-    const newsIndex = data.news.findIndex(n => n.id === id);
+    const newsIndex = news.findIndex(n => n.id === id);
     if (newsIndex !== -1) {
-      data.news.splice(newsIndex, 1);
-      fs.writeFileSync(NEWS_FILE, JSON.stringify(data, null, 2));
+      console.log(`🗑️ Удалена новость: "${news[newsIndex].title}"`);
+      news.splice(newsIndex, 1);
       res.json({ success: true });
     } else {
       res.json({ success: false, error: 'Новость не найдена' });
@@ -522,15 +468,55 @@ app.post('/api/admin/delete-news', (req, res) => {
   }
 });
 
+// Инициализация начальных данных
+function initData() {
+  // Добавляем тестовые данные если пусто
+  if (database.confirmedTeams.length === 0) {
+    database.confirmedTeams.push({
+      id: 1,
+      teamName: "Пример команды",
+      ownerName: "Админ",
+      points: 0,
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      goalDifference: 0,
+      status: 'confirmed',
+      registrationDate: new Date().toISOString()
+    });
+  }
+  
+  if (news.length === 0) {
+    news.push({
+      id: 1,
+      title: "Добро пожаловать в ЛЪибилскую Лигу!",
+      content: "Турнир по FC Mobile начинается 24 января 2026 года. Регистрируйте свои команды!",
+      imageUrl: null,
+      date: new Date().toLocaleDateString('ru-RU'),
+      time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+    });
+  }
+  
+  console.log('📊 Инициализированы начальные данные');
+  console.log(`👥 Команд: ${database.confirmedTeams.length}`);
+  console.log(`📰 Новостей: ${news.length}`);
+  console.log(`⚽ Матчей: ${matches.upcoming.length + matches.live.length + matches.completed.length}`);
+}
+
 // Все остальные маршруты
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Инициализация и запуск
-initDB();
+// Запуск сервера
+initData();
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
-  console.log(`API доступен по: http://localhost:${PORT}/api/teams`);
-  console.log(`Доступ к админке: http://localhost:${PORT}/admin.html (пароль: Ali)`);
+  console.log(`🚀 Сервер запущен на порту ${PORT}`);
+  console.log(`🌐 Сайт: https://fc-mobile-dido-league.onrender.com`);
+  console.log(`🔐 Админка: https://fc-mobile-dido-league.onrender.com/admin.html (пароль: Ali)`);
+  console.log(`📊 API команд: https://fc-mobile-dido-league.onrender.com/api/teams`);
+  console.log(`📰 API новостей: https://fc-mobile-dido-league.onrender.com/api/news`);
 });
